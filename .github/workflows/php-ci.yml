@@ -1,0 +1,74 @@
+name: PHP CI
+
+on:
+	pull_request:
+		branches: [develop, main]
+	push:
+		branches: [develop, 'feature/**', 'fix/**', 'chore/**']
+
+jobs:
+	build:
+		runs-on: ubuntu-latest
+		services:
+			redis:
+				image: redis:7-alpine
+				ports:
+					- 6379:6379
+		steps:
+			- name: Checkout
+				uses: actions/checkout@v4
+
+			- name: Setup PHP
+				uses: shivammathur/setup-php@v2
+				with:
+					php-version: '8.2'
+					extensions: mbstring, intl, pdo_sqlite, redis
+					coverage: none
+
+			- name: Cache Composer dependencies
+				uses: actions/cache@v4
+				with:
+					path: |
+						~/.composer/cache
+						vendor
+					key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+					restore-keys: ${{ runner.os }}-composer-
+
+			- name: Validate composer.json
+				run: composer validate --no-check-publish
+
+			- name: Install dependencies
+				run: composer install --no-interaction --prefer-dist --no-progress
+
+			- name: Check lock up to date
+				run: |
+					composer install --dry-run --no-interaction | (! grep -i 'update' ) || (echo 'composer.lock out of sync with composer.json' >&2; exit 1)
+
+			- name: Security audit (advisories)
+				run: composer audit --locked || true
+
+			- name: Copy .env
+				run: cp .env.example .env
+
+			- name: Generate key
+				run: php artisan key:generate
+
+			- name: Setup database
+				run: |
+					mkdir -p database
+					touch database/database.sqlite
+					php artisan migrate --graceful --no-interaction
+
+			- name: Run Pint (format)
+				run: vendor/bin/pint --test
+
+			- name: PHPStan (Larastan)
+				run: |
+					vendor/bin/phpstan analyse -c phpstan.neon.dist --memory-limit=1G || vendor/bin/phpstan analyse -c phpstan.neon.dist --memory-limit=2G
+
+			- name: Run tests
+				env:
+					DB_CONNECTION: sqlite
+					DB_DATABASE: database/database.sqlite
+					QUEUE_CONNECTION: sync
+				run: php artisan test --parallel
