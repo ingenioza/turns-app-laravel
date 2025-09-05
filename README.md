@@ -41,3 +41,5 @@ This project is licensed under the MIT License.
 - **Main Repository**: [turns](https://github.com/ingenioza/turns)
 - **Flutter App**: [turns-flutter](https://github.com/ingenioza/turns-flutter)
 - **Project Documentation**: See main repository for complete project overview
+
+<!-- seed required checks run -->
