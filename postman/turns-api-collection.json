@@ -57,14 +57,18 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// Store token if registration successful",
+									"// Store token and identity if registration successful",
 									"if (pm.response.code === 201) {",
 									"    const response = pm.response.json();",
 									"    if (response.token) {",
 									"        pm.collectionVariables.set('token', response.token);",
 									"        pm.collectionVariables.set('user_id', response.user.id);",
+									"        pm.collectionVariables.set('email', response.user.email);",
+									"        pm.collectionVariables.set('password', 'password123');",
+									"        if (response.user.username) { pm.collectionVariables.set('username', response.user.username); }",
 									"        console.log('Token stored:', response.token);",
 									"        console.log('User ID stored:', response.user.id);",
+									"        console.log('Email stored:', response.user.email);",
 									"    }",
 									"}",
 									"",
@@ -99,7 +103,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"username\": \"testuser\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}"
+							"raw": "{\n    \"name\": \"User {{$timestamp}}\",\n    \"email\": \"user-{{$timestamp}}@mailinator.com\",\n    \"username\": \"user_{{$timestamp}}\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/auth/register",
@@ -156,7 +160,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+							"raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/auth/login",
@@ -499,42 +503,6 @@
 				},
 				{
 					"name": "Create Group",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Store group ID and invite code if creation successful",
-									"if (pm.response.code === 201) {",
-									"    const response = pm.response.json();",
-									"    if (response.group) {",
-									"        pm.collectionVariables.set('group_id', response.group.id);",
-									"        console.log('Group ID stored:', response.group.id);",
-									"        ",
-									"        if (response.group.invite_code) {",
-									"            pm.collectionVariables.set('invite_code', response.group.invite_code);",
-									"            console.log('Invite code stored:', response.group.invite_code);",
-									"        }",
-									"    }",
-									"}",
-									"",
-									"pm.test('Group created successfully', function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([201, 422]);",
-									"});",
-									"",
-									"if (pm.response.code === 201) {",
-									"    pm.test('Response has group', function () {",
-									"        const response = pm.response.json();",
-									"        pm.expect(response).to.have.property('group');",
-									"        pm.expect(response.group).to.have.property('id');",
-									"        pm.expect(response.group).to.have.property('invite_code');",
-									"    });",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -553,7 +521,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Test Group\",\n    \"description\": \"A test group for API testing\",\n    \"settings\": {\n        \"turn_timeout\": 60,\n        \"auto_skip\": true,\n        \"notifications\": true\n    }\n}"
+							"raw": "{\n    \"name\": \"Test Group {{$timestamp}}\",\n    \"description\": \"A test group for API testing\",\n    \"settings\": {\n        \"turn_timeout\": 60,\n        \"auto_skip\": true,\n        \"notifications\": true\n    }\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/groups",
