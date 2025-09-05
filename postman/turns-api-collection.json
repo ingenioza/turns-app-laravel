@@ -5,10 +5,14 @@
 		"description": "Complete API collection for Turns Laravel backend with automated token management and ID copying",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
+    "protocolProfileBehavior": {
+        "followRedirects": true,
+        "followOriginalHttpMethod": true
+    },
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://turns-laravel.test",
+			"value": "http://127.0.0.1:8001",
 			"type": "string"
 		},
 		{

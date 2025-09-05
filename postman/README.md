@@ -49,8 +49,9 @@ This directory contains a comprehensive Postman collection for testing the Turns
 
 3. **Configure Base URL**
    ```
-   - Ensure your Laravel server is running on http://turns-laravel.test
-   - Or update the base_url variable in the environment
+   - Ensure your Laravel server is running locally
+   - Default base_url in the collection is http://127.0.0.1:8001
+   - If you're using Valet or a custom domain, update the base_url variable accordingly
    ```
 
 ## Usage Workflow
@@ -153,6 +154,19 @@ For best results, run requests in this order:
 4. Continue with other endpoints
 
 ## Troubleshooting
+### POST becomes GET after request
+```
+Symptom: You see "The GET method is not supported for route api/auth/register. Supported methods: POST." in response and Postman console shows a GET after your POST.
+
+Cause: A redirect (301/302/307/308) from your base URL (often due to domain rewrite, HTTPS redirect, or missing trailing slash) can cause clients to retry with GET by default.
+
+Fixes:
+- Use the provided base_url: http://127.0.0.1:8001 (no redirects)
+- Ensure Postman follows the original HTTP method on redirects. In this collection we set:
+   protocolProfileBehavior.followOriginalHttpMethod = true
+- Alternatively, disable auto-follow redirects in the request settings and investigate the redirect source.
+```
+
 
 ### Server Not Running
 ```
