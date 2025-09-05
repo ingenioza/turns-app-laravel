@@ -4,10 +4,14 @@ on:
 	pull_request:
 		branches: [develop, main]
 	push:
-		branches: [develop, 'feature/**', 'fix/**', 'chore/**']
+		branches:
+			- develop
+			- 'feature/**'
+			- 'fix/**'
+			- 'chore/**'
 
 jobs:
-	build:
+	ci:
 		runs-on: ubuntu-latest
 		services:
 			redis:
