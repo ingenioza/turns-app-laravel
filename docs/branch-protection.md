@@ -5,8 +5,9 @@ main branch
 - Allowed direct pushes: disabled
 - Allowed PR sources: develop only (enforced by pr-policy workflow + manual rule)
 - Required status checks (must pass before merge):
-  - php-ci (all jobs)
-  - pr-policy (title & source validation)
+  - php-ci (format, static analysis, tests, composer validation)
+  - pr-policy (title, branch naming, size, labels, source restriction)
+  - push-guard (ensures no direct pushes; mark required)
   - labels-sync (optional informational) – not required
 - Require branches up to date before merging: enabled
 - Required reviews: 1 (CODEOWNER @ingenioza)
@@ -21,6 +22,7 @@ develop branch
 - Required status checks:
   - php-ci
   - pr-policy
+  - (optional) push-guard (surface accidental direct pushes)
 - Required reviews: 1 (same reviewer) – may be relaxed later when team expands
 - Require branches up to date before merge: enabled
 - Dismiss stale approvals: enabled
@@ -42,9 +44,14 @@ Configuration Steps (GitHub UI)
 
 Automation Notes
 
-- pr-policy workflow already blocks PRs into main unless from develop; branch rule adds redundancy.
-- labels-sync not required to avoid blocking merges due to label sync lag.
-- Stale workflow helps prune inactive feature branches once PRs closed.
+ - pr-policy workflow already blocks PRs into main unless from develop; branch rule adds redundancy.
+ - labels-sync not required to avoid blocking merges due to label sync lag.
+ - Stale workflow helps prune inactive feature branches once PRs closed.
+ - push-guard fails any direct push; required status check highlights violation immediately.
+
+Workflow formatting
+
+- All workflow YAML must use spaces (no tabs). If a workflow is ignored, convert tabs to 2 spaces.
 
 Maintenance
 
