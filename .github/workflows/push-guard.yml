@@ -1,0 +1,20 @@
+name: Guard Protected Branch Direct Pushes
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  block-direct-push:
+    runs-on: ubuntu-latest
+    if: github.event.pusher.name != 'github-actions[bot]'
+    steps:
+      - name: Fail if direct push
+        run: |
+          echo "Direct pushes to 'main' or 'develop' are disallowed. Use a PR." >&2
+          exit 1

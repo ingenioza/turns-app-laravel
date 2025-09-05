@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest an idea for this project
+title: "feat: "
+labels: [enhancement]
+assignees: []
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What problem does this feature solve?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Bullet list of criteria for completion.
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Alternatives/risks
+    validations:
+      required: false
