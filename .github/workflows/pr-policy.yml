@@ -1,73 +1,73 @@
 name: PR Policy
 
 on:
-	pull_request:
-		types: [opened, edited, synchronize]
+  pull_request:
+    types: [opened, edited, synchronize]
 
 permissions:
-	contents: read
-	pull-requests: read
+  contents: read
+  pull-requests: read
 
 jobs:
-	policy:
-		runs-on: ubuntu-latest
-		steps:
-			- uses: actions/checkout@v4
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-			- name: Validate PR title (Conventional Commits)
-				uses: amannn/action-semantic-pull-request@v5
-				env:
-					GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-				with:
-					types: |-
-						feat
-						fix
-						chore
-						docs
-						refactor
-						perf
-						test
-						ci
-					requireScope: false
+      - name: Validate PR title (Conventional Commits)
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |-
+            feat
+            fix
+            chore
+            docs
+            refactor
+            perf
+            test
+            ci
+          requireScope: false
 
-			- name: Enforce branch naming conventions
-				run: |
-					BR="${GITHUB_HEAD_REF}";
-					if [[ "$BR" =~ ^(feature|fix|chore|refactor|perf|test|ci|docs)/[a-z0-9._-]+$ || "$BR" == "develop" ]]; then
-						echo "Branch name OK: $BR";
-					else
-						echo "Branch name '$BR' invalid. Use feature/*, fix/*, chore/* etc." >&2; exit 1;
-					fi
+      - name: Enforce branch naming conventions
+        run: |
+          BR="${GITHUB_HEAD_REF}";
+          if [[ "$BR" =~ ^(feature|fix|chore|refactor|perf|test|ci|docs)/[a-z0-9._-]+$ || "$BR" == "develop" ]]; then
+            echo "Branch name OK: $BR";
+          else
+            echo "Branch name '$BR' invalid. Use feature/*, fix/*, chore/* etc." >&2; exit 1;
+          fi
 
-			- name: Block PRs directly into main except from develop
-				if: github.base_ref == 'main'
-				run: |
-					if [ "${{ github.head_ref }}" != "develop" ]; then
-						echo "Only PRs from develop are allowed into main." >&2
-						exit 1
-					fi
+      - name: Block PRs directly into main except from develop
+        if: github.base_ref == 'main'
+        run: |
+          if [ "${{ github.head_ref }}" != "develop" ]; then
+            echo "Only PRs from develop are allowed into main." >&2
+            exit 1
+          fi
 
-			- name: Fetch PR details
-				id: pr
-				uses: octokit/request-action@v2.x
-				with:
-					route: GET /repos/${{ github.repository }}/pulls/${{ github.event.number }}
-				env:
-					GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch PR details
+        id: pr
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/${{ github.repository }}/pulls/${{ github.event.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-			- name: Enforce maximum changed lines (soft cap 650)
-				run: |
-					ADDED=$(jq '.additions' <<< '${{ steps.pr.outputs.data }}');
-					DELETED=$(jq '.deletions' <<< '${{ steps.pr.outputs.data }}');
-					TOTAL=$((ADDED+DELETED));
-					echo "Changed lines: $TOTAL (add: $ADDED del: $DELETED)";
-					if [ $TOTAL -gt 650 ]; then
-						echo "PR too large ($TOTAL lines). Please split into smaller PRs." >&2; exit 1;
-					fi
+      - name: Enforce maximum changed lines (soft cap 650)
+        run: |
+          ADDED=$(jq '.additions' <<< '${{ steps.pr.outputs.data }}');
+          DELETED=$(jq '.deletions' <<< '${{ steps.pr.outputs.data }}');
+          TOTAL=$((ADDED+DELETED));
+          echo "Changed lines: $TOTAL (add: $ADDED del: $DELETED)";
+          if [ $TOTAL -gt 650 ]; then
+            echo "PR too large ($TOTAL lines). Please split into smaller PRs." >&2; exit 1;
+          fi
 
-			- name: Require at least one label
-				run: |
-					LABEL_COUNT=$(jq '.labels | length' <<< '${{ steps.pr.outputs.data }}');
-					if [ "$LABEL_COUNT" -lt 1 ]; then
-						echo "At least one label is required (type:* or status:*)." >&2; exit 1; fi
+      - name: Require at least one label
+        run: |
+          LABEL_COUNT=$(jq '.labels | length' <<< '${{ steps.pr.outputs.data }}');
+          if [ "$LABEL_COUNT" -lt 1 ]; then
+            echo "At least one label is required (type:* or status:*)." >&2; exit 1; fi
 
