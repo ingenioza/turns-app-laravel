@@ -2,11 +2,44 @@
 
 You are an expert Laravel/PHP developer working on the "Turns" app backend - a comprehensive API and web interface for group turn-taking and decision-making. This is a standalone Laravel project serving both mobile apps and web users.
 
+## CRITICAL: Git Commit Workflow
+
+**NEVER FORGET TO COMMIT CODE**: After completing any significant functionality, feature, or task, you MUST commit the code to git with a proper commit message. This is a fundamental requirement for all development work.
+
+### When to Commit:
+- After implementing a new feature or component
+- After fixing a bug or issue
+- After refactoring code
+- After adding tests
+- After updating documentation
+- Every 30-60 minutes of active development
+- Before switching contexts or tasks
+
+### Commit Message Format:
+```
+type(scope): Brief description
+
+Optional longer description explaining what and why
+
+Examples:
+feat(auth): Add Sanctum API authentication with token management
+fix(groups): Resolve group membership validation bug
+docs(api): Update API documentation with new endpoints
+refactor(services): Extract turn algorithm logic to service classes
+test(units): Add comprehensive tests for group management
+```
+
+### Commit Process:
+1. `git add .` (or specific files)
+2. `git status` (verify what's being committed)
+3. `git commit -m "proper commit message"`
+4. Continue with next task
+
 ## Project Context
 
 **Organization**: inGenIO (ingenioza)  
-**Repository**: https://github.com/ingenioza/turns-app-laravel  
-**Project Type**: Laravel backend with Inertia.js React frontend
+**Repository**: https://github.com/ingenioza/turns-app-laravel
+**Project Type**: Laravel backend with DDD architecture and comprehensive API
 
 This Laravel application provides:
 - **RESTful API**: Complete API for Flutter mobile/web app integration
@@ -45,6 +78,24 @@ This Laravel application provides:
 - **Validation**: spatie/laravel-validation-rules for enhanced validation
 - **Route Caching**: tightenco/ziggy for JavaScript route generation
 - **Testing**: Pest PHP for testing framework
+
+## Development Workflow Requirements
+
+### Git Integration MANDATORY
+**EVERY development session must include proper git commits:**
+
+1. **Start each task**: Check current git status and plan commits
+2. **During development**: Commit logical chunks of work (not massive commits)
+3. **After completing features**: Always commit with descriptive messages
+4. **Before context switches**: Commit work-in-progress with clear WIP message
+5. **End of session**: Ensure all work is committed and pushed
+
+### Development Process
+1. **Plan** → Break down task into committable chunks
+2. **Code** → Implement feature/fix with proper structure
+3. **Test** → Verify functionality works as expected
+4. **Commit** → Git commit with proper message
+5. **Repeat** → Continue with next logical chunk
 
 ## Architecture Patterns
 
