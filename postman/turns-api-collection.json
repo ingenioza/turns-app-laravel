@@ -1,0 +1,938 @@
+{
+	"info": {
+		"_postman_id": "turns-api-collection",
+		"name": "Turns Laravel API",
+		"description": "Complete API collection for Turns Laravel backend with automated token management and ID copying",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+    "protocolProfileBehavior": {
+        "followRedirects": true,
+        "followOriginalHttpMethod": true
+    },
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8001",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "group_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "turn_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "member_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "invite_code",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Store token and identity if registration successful",
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.token) {",
+									"        pm.collectionVariables.set('token', response.token);",
+									"        pm.collectionVariables.set('user_id', response.user.id);",
+									"        pm.collectionVariables.set('email', response.user.email);",
+									"        pm.collectionVariables.set('password', 'password123');",
+									"        if (response.user.username) { pm.collectionVariables.set('username', response.user.username); }",
+									"        console.log('Token stored:', response.token);",
+									"        console.log('User ID stored:', response.user.id);",
+									"        console.log('Email stored:', response.user.email);",
+									"    }",
+									"}",
+									"",
+									"// Test response structure",
+									"pm.test('Registration successful', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201, 422]);",
+									"});",
+									"",
+									"if (pm.response.code === 201) {",
+									"    pm.test('Response has token', function () {",
+									"        const response = pm.response.json();",
+									"        pm.expect(response).to.have.property('token');",
+									"        pm.expect(response).to.have.property('user');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"User {{$timestamp}}\",\n    \"email\": \"user-{{$timestamp}}@mailinator.com\",\n    \"username\": \"user_{{$timestamp}}\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Store token if login successful",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.token) {",
+									"        pm.collectionVariables.set('token', response.token);",
+									"        pm.collectionVariables.set('user_id', response.user.id);",
+									"        console.log('Token stored:', response.token);",
+									"        console.log('User ID stored:', response.user.id);",
+									"    }",
+									"}",
+									"",
+									"pm.test('Login successful', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test('Response has token', function () {",
+									"        const response = pm.response.json();",
+									"        pm.expect(response).to.have.property('token');",
+									"        pm.expect(response).to.have.property('user');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Get Current User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('User data retrieved', function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"pm.test('Response has user', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('user');",
+									"    pm.expect(response.user).to.have.property('id');",
+									"    pm.expect(response.user).to.have.property('email');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/me",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "me"]
+						}
+					}
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"current_password\": \"password123\",\n    \"new_password\": \"newpassword123\",\n    \"new_password_confirmation\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/change-password",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "change-password"]
+						}
+					}
+				},
+				{
+					"name": "Update Settings",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"settings\": {\n        \"theme\": \"dark\",\n        \"notifications\": true,\n        \"turn_reminders\": true,\n        \"auto_skip_timeout\": 60\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/settings",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "settings"]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "logout"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "List Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Users listed successfully', function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"// Store a random user ID for member operations",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.users && response.users.length > 0) {",
+									"        // Find a user that's not the current user",
+									"        const currentUserId = pm.collectionVariables.get('user_id');",
+									"        const otherUser = response.users.find(user => user.id != currentUserId);",
+									"        if (otherUser) {",
+									"            pm.collectionVariables.set('member_id', otherUser.id);",
+									"            console.log('Member ID stored:', otherUser.id);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users"]
+						}
+					}
+				},
+				{
+					"name": "Get User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Test User\",\n    \"username\": \"updateduser\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Search Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/search?query=test",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "search"],
+							"query": [
+								{
+									"key": "query",
+									"value": "test"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Recently Active Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/recently-active?days=7",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "recently-active"],
+							"query": [
+								{
+									"key": "days",
+									"value": "7"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Groups",
+			"item": [
+				{
+					"name": "List User Groups",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Groups listed successfully', function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"// Store a random group ID for group operations",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.groups && response.groups.length > 0) {",
+									"        const randomGroup = response.groups[Math.floor(Math.random() * response.groups.length)];",
+									"        pm.collectionVariables.set('group_id', randomGroup.id);",
+									"        console.log('Group ID stored:', randomGroup.id);",
+									"        ",
+									"        // Store invite code if available",
+									"        if (randomGroup.invite_code) {",
+									"            pm.collectionVariables.set('invite_code', randomGroup.invite_code);",
+									"            console.log('Invite code stored:', randomGroup.invite_code);",
+									"        }",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups"]
+						}
+					}
+				},
+				{
+					"name": "Create Group",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test Group {{$timestamp}}\",\n    \"description\": \"A test group for API testing\",\n    \"settings\": {\n        \"turn_timeout\": 60,\n        \"auto_skip\": true,\n        \"notifications\": true\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/groups",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups"]
+						}
+					}
+				},
+				{
+					"name": "Get Group",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Group",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Test Group\",\n    \"description\": \"An updated test group\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Join Group by Invite Code",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"invite_code\": \"{{invite_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/groups/join",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "join"]
+						}
+					}
+				},
+				{
+					"name": "Get Group Members",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}/members",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}", "members"]
+						}
+					}
+				},
+				{
+					"name": "Search Groups",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/search?query=test",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "search"],
+							"query": [
+								{
+									"key": "query",
+									"value": "test"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Turns",
+			"item": [
+				{
+					"name": "List User Turns",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Turns listed successfully', function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"// Store a random turn ID for turn operations",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.turns && response.turns.length > 0) {",
+									"        const randomTurn = response.turns[Math.floor(Math.random() * response.turns.length)];",
+									"        pm.collectionVariables.set('turn_id', randomTurn.id);",
+									"        console.log('Turn ID stored:', randomTurn.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/turns?limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["api", "turns"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Start Turn",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Store turn ID if creation successful",
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.turn) {",
+									"        pm.collectionVariables.set('turn_id', response.turn.id);",
+									"        console.log('Turn ID stored:', response.turn.id);",
+									"    }",
+									"}",
+									"",
+									"pm.test('Turn started successfully', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([201, 422]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"group_id\": {{group_id}}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/turns",
+							"host": ["{{base_url}}"],
+							"path": ["api", "turns"]
+						}
+					}
+				},
+				{
+					"name": "Get Turn",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/turns/{{turn_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "turns", "{{turn_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Complete Turn",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"notes\": \"Turn completed successfully\",\n    \"metadata\": {\n        \"completion_method\": \"manual\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/turns/{{turn_id}}/complete",
+							"host": ["{{base_url}}"],
+							"path": ["api", "turns", "{{turn_id}}", "complete"]
+						}
+					}
+				},
+				{
+					"name": "Skip Turn",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"reason\": \"Unable to complete turn at this time\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/turns/{{turn_id}}/skip",
+							"host": ["{{base_url}}"],
+							"path": ["api", "turns", "{{turn_id}}", "skip"]
+						}
+					}
+				},
+				{
+					"name": "Get Active Turn for Group",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}/turns/active",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}", "turns", "active"]
+						}
+					}
+				},
+				{
+					"name": "Get Group Turn History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}/turns/history?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}", "turns", "history"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Group Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}/turns/stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}", "turns", "stats"]
+						}
+					}
+				},
+				{
+					"name": "Get User Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/turns/user-stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "turns", "user-stats"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

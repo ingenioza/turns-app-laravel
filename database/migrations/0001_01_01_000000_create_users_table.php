@@ -19,6 +19,17 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
+            
+            // Additional fields for turns app
+            $table->string('username')->unique()->nullable();
+            $table->string('avatar_url')->nullable();
+            $table->timestamp('last_active_at')->nullable();
+            $table->json('settings')->nullable();
+            $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
+            $table->boolean('is_admin')->default(false);
+            
+            $table->index(['last_active_at']);
+            $table->index(['status']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
