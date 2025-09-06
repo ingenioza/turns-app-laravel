@@ -1,0 +1,11 @@
+includes:
+    # Larastan package installs under vendor/larastan/larastan
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+    level: 5
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
+    reportUnmatchedIgnoredErrors: true
