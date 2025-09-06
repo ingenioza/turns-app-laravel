@@ -56,19 +56,19 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     
     // Turn management routes
-    Route::apiResource('turns', TurnController::class)->except(['update']);
     Route::prefix('turns')->group(function () {
+        Route::get('user-stats', [TurnController::class, 'userStats']);
         Route::post('{turn}/complete', [TurnController::class, 'complete']);
         Route::post('{turn}/skip', [TurnController::class, 'skip']);
         Route::post('{turn}/force-end', [TurnController::class, 'forceEnd']);
-        Route::get('user-stats', [TurnController::class, 'userStats']);
     });
+    Route::apiResource('turns', TurnController::class)->except(['update']);
     
     // Group-specific turn routes
     Route::prefix('groups/{group}/turns')->group(function () {
         Route::get('active', [TurnController::class, 'active']);
         Route::get('current', [TurnController::class, 'current']);
-        Route::get('history', [TurnController::class, 'groupHistory']);
+        Route::get('history', [TurnController::class, 'history']);
         Route::get('stats', [TurnController::class, 'groupStats']);
     });
 });
