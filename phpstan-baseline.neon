@@ -1,0 +1,427 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Application/Services/GroupService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$pivot\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Application/Services/GroupService.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\Group\\Group\:\:getMaxTurnOrder\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Application/Services/GroupService.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\Group\\Group\:\:getSettings\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Application/Services/GroupService.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Domain\\Group\\GroupRepositoryInterface\:\:updateMemberRole\(\) expects App\\Domain\\User\\User, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Application/Services/GroupService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$creator_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\Group\\Group\:\:getNextUser\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\Group\\Group\:\:getTurnHistory\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Cannot call method toISOString\(\) on string\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Comparison operation "\>" between 1 and 100 is always false\.$#'
+			identifier: greater.alwaysFalse
+			count: 1
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#3 \$reason \(string\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 2
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Method App\\Application\\Services\\TurnService\:\:updateGroupTurnHistory\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Parameter \#1 \$group of method App\\Application\\Services\\TurnService\:\:moveToNextUser\(\) expects App\\Domain\\Group\\Group, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Parameter \#1 \$group of method App\\Domain\\Group\\GroupRepositoryInterface\:\:isAdmin\(\) expects App\\Domain\\Group\\Group, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Result of && is always false\.$#'
+			identifier: booleanAnd.alwaysFalse
+			count: 1
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between App\\Domain\\Turn\\TurnStatus and ''active'' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 3
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between App\\Domain\\Turn\\TurnStatus and ''active'' will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 3
+			path: app/Application/Services/TurnService.php
+
+		-
+			message: '#^Call to an undefined method App\\Domain\\User\\User\:\:getSettings\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Application/Services/UserService.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#2 \$reason \(string\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: app/Application/Services/UserService.php
+
+		-
+			message: '#^Offset ''password'' on array\<mixed, mixed\> in isset\(\) does not exist\.$#'
+			identifier: isset.offset
+			count: 1
+			path: app/Application/Services/UserService.php
+
+		-
+			message: '#^Access to an undefined property App\\Domain\\Group\\Group\:\:\$owner_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Group/Group.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Relations\\Pivot\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Group/Group.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\:\:active\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Domain/Group/Group.php
+
+		-
+			message: '#^Method App\\Domain\\Group\\Group\:\:getCurrentTurn\(\) should return App\\Domain\\Turn\\Turn\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Domain/Group/Group.php
+
+		-
+			message: '#^Method App\\Domain\\Group\\Group\:\:getNextTurn\(\) should return App\\Domain\\Turn\\Turn\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Domain/Group/Group.php
+
+		-
+			message: '#^Access to an undefined property App\\Domain\\Turn\\Turn\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Domain/Turn/Turn.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:canUserManage\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Domain/Turn/Turn.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: app/Domain/Turn/Turn.php
+
+		-
+			message: '#^Method App\\Domain\\Turn\\Turn\:\:getDuration\(\) should return int\|null but returns float\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Domain/Turn/Turn.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Relations\\Pivot\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/GroupController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Group\>\:\:\$creator_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$creator_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$pivot\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$turns\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Group\>\:\:members\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:members\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Deprecated in PHP 8\.4\: Parameter \#2 \$group \(App\\Models\\Group\) is implicitly nullable via default value null\.$#'
+			identifier: parameter.implicitlyNullable
+			count: 1
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 2
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 4
+			path: app/Http/Controllers/Api/TurnController.php
+
+		-
+			message: '#^Access to an undefined property App\\Domain\\User\\User\:\:\$groups\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Api/UserController.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$activeMembers\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$creator_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$invite_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$last_turn_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$members\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$settings\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\GroupResource\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/GroupResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$duration_seconds\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$ended_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$group\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$group_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$metadata\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$notes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$started_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Http\\Resources\\TurnResource\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Resources/TurnResource.php
+
+		-
+			message: '#^Result of method Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany\<Illuminate\\Database\\Eloquent\\Model,Illuminate\\Database\\Eloquent\\Model,Illuminate\\Database\\Eloquent\\Relations\\Pivot,string\>\:\:attach\(\) \(void\) is used\.$#'
+			identifier: method.void
+			count: 1
+			path: app/Infrastructure/Repositories/EloquentGroupRepository.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between null and null will always evaluate to false\.$#'
+			identifier: notIdentical.alwaysFalse
+			count: 1
+			path: app/Infrastructure/Repositories/EloquentGroupRepository.php
