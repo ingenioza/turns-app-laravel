@@ -22,3 +22,10 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+\n+# Backups & debug artifacts
+*.bak
+*.backup
+*.broken
+*.orig
+TurnCompletionDebugTest.php
+test_turn_update.php
