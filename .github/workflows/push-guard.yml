@@ -1,0 +1,14 @@
+name: push-guard
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prevent direct pushes to main
+        run: |
+          echo "Direct pushes to main are disallowed. Use PR via develop." >&2
+          exit 1

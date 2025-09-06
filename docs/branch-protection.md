@@ -1,4 +1,35 @@
-Branch Protection Policy
+Branch Protection Policy (Consolidated)
+
+Branches
+- main: production only; fast-forward or merge from hardened develop; no direct pushes (enforced by push-guard + protection rules).
+- develop: integration branch; feature branches merge here via PR.
+
+Requirements for Merging into main
+1. All tests green.
+2. Static analysis (phpstan) passes.
+3. No debug artifacts / backup files.
+4. Documentation updated for user-facing or API changes.
+5. Conventional commits and PR title.
+
+PR Policy
+- Enforced semantic titles.
+- Small, reviewable scope (< ~400 lines diff preferred, excluding generated docs).
+- Linked issue or clear rationale in description.
+
+Automation
+- push-guard prevents direct pushes to main.
+- php-ci runs tests on develop PRs.
+- labels-sync keeps labels consistent.
+- stale marks inactive issues/PRs.
+
+Fast-Forward Strategy
+When develop is production-ready: update main via ff-only merge to preserve linear history.
+
+Security
+Never merge secrets. Review .env.example and workflows for secret misuse.
+
+Revision
+This policy evolves; propose changes via docs update PR.Branch Protection Policy
 
 main branch
 
