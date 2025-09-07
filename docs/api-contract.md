@@ -1,59 +1,46 @@
-# API Contract (Authoritative)
+# API Contract — Authoritative (Laravel)
 
-This API is the single backend for BOTH:
-- Flutter Android/iOS mobile apps (`turns-flutter`)
-- Laravel Inertia v2 web app (`turns-laravel` web)
-
-All mobile and web clients MUST go through this API for:
-- Auth (Firebase token exchange)
-- Group/participant CRUD
-- Turn algorithms (random, round-robin, weighted)
-- Notifications (device token registration)
-- History & fairness analytics
-
-The mobile apps never connect directly to Firebase/Firestore except for authentication; all domain data lives in MySQL through this Laravel API.
-
-Base: `/api/v1`
+> Source of truth for **all clients** (Flutter mobile + Inertia web).  
+> Any change here must be accompanied by updated **feature tests** and a sync note to Flutter.
 
 ## Auth
-POST /auth/exchange
-- Body: `{ firebaseIdToken: string }`
-- 200 → `{ accessToken: string, user: { id, name, email? } }`
-
-GET /me
-- Headers: `Authorization: Bearer <token>`
-- 200 → current user
+### POST /api/v1/auth/firebase/exchange
+- Request: `{ idToken: string }`
+- Response: `{ token: string, user: {...} }`
+- Notes: Verifies Firebase ID token, issues API token (Sanctum/JWT).
 
 ## Groups
-POST /groups
-- `{ name: string }` → `{ id, code, name, leaderId }`
+### GET /api/v1/groups
+### POST /api/v1/groups
+### GET /api/v1/groups/{id}
+### PATCH /api/v1/groups/{id}
+### DELETE /api/v1/groups/{id}`
+- Model: `Group { id, name, description?, settings{ algorithm, allow_duplicates }, ... }`
 
-POST /groups/join
-- `{ code: string }` → `{ id }`
-
-GET /groups/{id}
-- details + participants
-
-POST /groups/{id}/participants
-- `{ name: string, accountUserId?: string }`
-
-DELETE /groups/{id}/participants/{pid}
-
-## Algorithms
-GET /algorithms
-- `["random","round_robin","weighted"]`
+## Participants
+### GET /api/v1/groups/{id}/participants
+### POST /api/v1/groups/{id}/participants
+### DELETE /api/v1/groups/{id}/participants/{pid}
 
 ## Turns
-POST /groups/{id}/turns/next
-- `{ algorithm: "random"|"round_robin"|"weighted", options?: { weights?: Record<participantId, number> } }`
-- 200 → `{ winner: { id,name }, turnId, occurredAt, nextHint? }`
+### POST /api/v1/groups/{id}/turns/next
+- Body: `{ algorithm_override?: "random"|"round_robin"|"weighted", exclude?: string[] }`
+- Response: `{ selected: Participant, history_entry: TurnHistory }`
 
-GET /groups/{id}/turns/history?limit=50
+### GET /api/v1/groups/{id}/turns/history?limit=50
 
-## Notifications
-POST /devices
-- `{ platform: "ios"|"android"|"web", token: string }`
+## Devices (Notifications)
+### POST /api/v1/devices
+- Body: `{ token: string, platform: "ios"|"android"|"web" }`
 
-### Notes
-- IDs: UUID/ULID
-- Times: ISO‑8601 UTC
+## Errors
+- Envelope: `{ error: { code, message, details? } }` with proper HTTP status.
+
+## Versioning
+- Prefix: `/api/v1`
+- Breaking changes require minor version bump and client sync.
+
+## Contract Change Process
+1) Update this doc and add/adjust feature tests.
+2) Post a message to `turns-flutter/sync/inbox.md` (and `turns-laravel/sync/outbox.md`).
+3) Merge only when CI is green.
