@@ -2,14 +2,14 @@
 
 namespace App\Domain\Group;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Group extends Model
 {
@@ -43,7 +43,7 @@ class Group extends Model
     // Domain Methods
     public function addMember(\App\Domain\User\User $user, string $role = 'member'): void
     {
-        if (!$this->hasMember($user)) {
+        if (! $this->hasMember($user)) {
             $this->members()->attach($user->id, [
                 'role' => $role,
                 'joined_at' => now(),
@@ -69,12 +69,13 @@ class Group extends Model
     public function getMemberRole(\App\Domain\User\User $user): ?string
     {
         $member = $this->members()->where('user_id', $user->id)->first();
+
         return $member?->pivot?->role;
     }
 
     public function canUserManage(\App\Domain\User\User $user): bool
     {
-        return $this->isOwner($user) || 
+        return $this->isOwner($user) ||
                in_array($this->getMemberRole($user), ['admin', 'moderator']);
     }
 
@@ -97,7 +98,7 @@ class Group extends Model
     {
         $currentSettings = $this->settings ?? [];
         $this->update([
-            'settings' => array_merge($currentSettings, $settings)
+            'settings' => array_merge($currentSettings, $settings),
         ]);
     }
 

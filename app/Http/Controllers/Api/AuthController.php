@@ -57,7 +57,7 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (!Auth::attempt($credentials)) {
+        if (! Auth::attempt($credentials)) {
             return response()->json([
                 'message' => 'Invalid credentials',
             ], 401);
@@ -65,10 +65,10 @@ class AuthController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        
+
         // Update last active timestamp
         $this->userService->updateLastActive($user);
-        
+
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
@@ -85,7 +85,7 @@ class AuthController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        
+
         // Update last active timestamp
         $this->userService->updateLastActive($user);
 
@@ -101,7 +101,7 @@ class AuthController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        
+
         // Revoke current token
         $user->currentAccessToken()->delete();
 
@@ -117,7 +117,7 @@ class AuthController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        
+
         // Revoke all tokens
         $user->tokens()->delete();
 
@@ -139,7 +139,7 @@ class AuthController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if (!Hash::check($validated['current_password'], $user->password)) {
+        if (! Hash::check($validated['current_password'], $user->password)) {
             return response()->json([
                 'message' => 'Current password is incorrect',
                 'errors' => ['current_password' => ['Current password is incorrect']],

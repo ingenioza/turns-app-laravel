@@ -3,10 +3,10 @@
 namespace Tests\Unit;
 
 use App\Models\Group;
-use App\Models\User;
 use App\Models\Turn;
-use Tests\TestCase;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class BasicModelTest extends TestCase
 {
@@ -22,19 +22,19 @@ class BasicModelTest extends TestCase
     public function test_user_can_create_group()
     {
         $user = User::factory()->create();
-        
+
         $group = new Group([
             'name' => 'Test Group',
             'description' => 'A test group',
             'creator_id' => $user->id,
-            'status' => 'active'
+            'status' => 'active',
         ]);
-        
+
         $group->save();
-        
+
         $this->assertDatabaseHas('groups', [
             'name' => 'Test Group',
-            'creator_id' => $user->id
+            'creator_id' => $user->id,
         ]);
     }
 }

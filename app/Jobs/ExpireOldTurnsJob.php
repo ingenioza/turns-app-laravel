@@ -26,7 +26,7 @@ class ExpireOldTurnsJob implements ShouldQueue
     {
         try {
             $expiredCount = $turnService->expireOldTurns();
-            
+
             if ($expiredCount > 0) {
                 Log::info("Expired {$expiredCount} old turns", [
                     'expired_count' => $expiredCount,
@@ -38,7 +38,7 @@ class ExpireOldTurnsJob implements ShouldQueue
                 'error' => $e->getMessage(),
                 'job' => self::class,
             ]);
-            
+
             throw $e;
         }
     }

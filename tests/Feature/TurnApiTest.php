@@ -18,7 +18,7 @@ class TurnApiTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id, 'status' => 'active']);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/turns', [
@@ -54,7 +54,7 @@ class TurnApiTest extends TestCase
         $user = User::factory()->create();
         $creator = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $creator->id, 'status' => 'active']);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/turns', [
@@ -70,17 +70,17 @@ class TurnApiTest extends TestCase
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user1->id, 'status' => 'active']);
-        
+
         $group->members()->attach($user1->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
         $group->members()->attach($user2->id, ['role' => 'member', 'is_active' => true, 'turn_order' => 2]);
-        
+
         // Create active turn for user1
         Turn::factory()->create([
             'group_id' => $group->id,
             'user_id' => $user1->id,
             'status' => 'active',
         ]);
-        
+
         Sanctum::actingAs($user2);
 
         $response = $this->postJson('/api/turns', [
@@ -96,14 +96,14 @@ class TurnApiTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id, 'status' => 'active']);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
-        
+
         $turn = Turn::create([
             'group_id' => $group->id,
             'user_id' => $user->id,
             'status' => 'active',
             'started_at' => now()->subMinutes(30),
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->postJson("/api/turns/{$turn->id}/complete", [
@@ -113,14 +113,13 @@ class TurnApiTest extends TestCase
         $response->assertStatus(200)
             ->assertJson(['message' => 'Turn completed successfully']);
 
-
         $this->assertDatabaseHas('turns', [
             'id' => $turn->id,
             'status' => 'completed',
             'notes' => 'Completed successfully',
         ]);
 
-    $turn->refresh();
+        $turn->refresh();
         $this->assertNotNull($turn->ended_at);
         $this->assertNotNull($turn->duration_seconds);
     }
@@ -130,17 +129,17 @@ class TurnApiTest extends TestCase
         $admin = User::factory()->create();
         $member = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $admin->id, 'status' => 'active']);
-        
+
         $group->members()->attach($admin->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
         $group->members()->attach($member->id, ['role' => 'member', 'is_active' => true, 'turn_order' => 2]);
-        
+
         $turn = Turn::create([
             'group_id' => $group->id,
             'user_id' => $member->id,
             'status' => 'active',
             'started_at' => now()->subMinutes(30),
         ]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->postJson("/api/turns/{$turn->id}/complete");
@@ -157,14 +156,14 @@ class TurnApiTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id, 'status' => 'active']);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
-        
+
         $turn = Turn::create([
             'group_id' => $group->id,
             'user_id' => $user->id,
             'status' => 'active',
             'started_at' => now()->subMinutes(5),
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->postJson("/api/turns/{$turn->id}/skip", [
@@ -186,17 +185,17 @@ class TurnApiTest extends TestCase
         $admin = User::factory()->create();
         $member = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $admin->id, 'status' => 'active']);
-        
+
         $group->members()->attach($admin->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
         $group->members()->attach($member->id, ['role' => 'member', 'is_active' => true, 'turn_order' => 2]);
-        
+
         $turn = Turn::create([
             'group_id' => $group->id,
             'user_id' => $member->id,
             'status' => 'active',
             'started_at' => now()->subHour(),
         ]);
-        
+
         Sanctum::actingAs($admin);
 
         $response = $this->postJson("/api/turns/{$turn->id}/force-end", [
@@ -218,14 +217,14 @@ class TurnApiTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id, 'status' => 'active']);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
-        
+
         $turn = Turn::create([
             'group_id' => $group->id,
             'user_id' => $user->id,
             'status' => 'active',
             'started_at' => now()->subMinutes(10),
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson("/api/groups/{$group->id}/turns/active");
@@ -246,10 +245,10 @@ class TurnApiTest extends TestCase
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user1->id, 'status' => 'active']);
-        
+
         $group->members()->attach($user1->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
         $group->members()->attach($user2->id, ['role' => 'member', 'is_active' => true, 'turn_order' => 2]);
-        
+
         Sanctum::actingAs($user1);
 
         $response = $this->getJson("/api/groups/{$group->id}/turns/current");
@@ -271,14 +270,14 @@ class TurnApiTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id, 'status' => 'active']);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
-        
+
         // Create some completed turns
         Turn::factory()->count(3)->create([
             'group_id' => $group->id,
             'user_id' => $user->id,
             'status' => 'completed',
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson("/api/groups/{$group->id}/turns/history");
@@ -292,12 +291,12 @@ class TurnApiTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id, 'status' => 'active']);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
-        
+
         // Create various turn statuses
         Turn::factory()->create(['user_id' => $user->id, 'status' => 'completed', 'duration_seconds' => 1800]);
         Turn::factory()->create(['user_id' => $user->id, 'status' => 'skipped']);
         Turn::factory()->create(['user_id' => $user->id, 'status' => 'active']);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/turns/user-stats');
@@ -322,13 +321,13 @@ class TurnApiTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id, 'status' => 'active']);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
-        
+
         Turn::factory()->count(5)->create([
             'group_id' => $group->id,
             'user_id' => $user->id,
             'status' => 'completed',
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson("/api/groups/{$group->id}/turns/stats");
@@ -350,9 +349,9 @@ class TurnApiTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id, 'status' => 'active']);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
-        
+
         Turn::factory()->count(3)->create(['user_id' => $user->id, 'group_id' => $group->id]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/turns');
@@ -366,12 +365,12 @@ class TurnApiTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id, 'status' => 'active']);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
-        
+
         $turn = Turn::factory()->create([
             'user_id' => $user->id,
             'group_id' => $group->id,
         ]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson("/api/turns/{$turn->id}");

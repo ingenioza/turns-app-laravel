@@ -2,12 +2,12 @@
 
 namespace App\Domain\Turn;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-use Carbon\Carbon;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 enum TurnStatus: string
 {
@@ -78,7 +78,7 @@ class Turn extends Model
 
     public function skip(?string $reason = null): void
     {
-        if (!in_array($this->status, [TurnStatus::PENDING, TurnStatus::ACTIVE])) {
+        if (! in_array($this->status, [TurnStatus::PENDING, TurnStatus::ACTIVE])) {
             throw new \InvalidArgumentException('Only pending or active turns can be skipped');
         }
 
@@ -125,13 +125,13 @@ class Turn extends Model
 
     public function canBeStartedBy(\App\Domain\User\User $user): bool
     {
-        return $this->user_id === $user->id || 
+        return $this->user_id === $user->id ||
                $this->group->canUserManage($user);
     }
 
     public function canBeCompletedBy(\App\Domain\User\User $user): bool
     {
-        return $this->user_id === $user->id || 
+        return $this->user_id === $user->id ||
                $this->group->canUserManage($user);
     }
 

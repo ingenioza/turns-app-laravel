@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('turn_order')->nullable();
             $table->json('settings')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['group_id', 'user_id']);
             $table->index(['group_id', 'is_active']);
             $table->index(['user_id']);

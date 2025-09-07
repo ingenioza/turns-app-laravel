@@ -35,7 +35,7 @@ class TurnResource extends JsonResource
             'started_at' => $this->started_at,
             'ended_at' => $this->ended_at,
             'duration_seconds' => $this->duration_seconds,
-            'duration_formatted' => $this->duration_seconds ? 
+            'duration_formatted' => $this->duration_seconds ?
                 gmdate('H:i:s', $this->duration_seconds) : null,
             'notes' => $this->notes,
             'metadata' => $this->metadata,
