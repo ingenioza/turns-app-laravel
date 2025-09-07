@@ -16,12 +16,12 @@ class Group extends Model
 
     protected $fillable = [
         'name',
-        'description', 
+        'description',
         'creator_id',
         'settings',
         'status',
         'invite_code',
-        'last_turn_at'
+        'last_turn_at',
     ];
 
     protected $casts = [
@@ -32,7 +32,7 @@ class Group extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($group) {
             if (empty($group->invite_code)) {
                 $group->invite_code = $group->generateInviteCode();
@@ -82,7 +82,7 @@ class Group extends Model
         do {
             $code = strtoupper(Str::random(8));
         } while (static::where('invite_code', $code)->exists());
-        
+
         return $code;
     }
 }

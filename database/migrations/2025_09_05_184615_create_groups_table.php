@@ -23,7 +23,7 @@ return new class extends Migration
             $table->timestamp('last_turn_at')->nullable();
             $table->foreignId('current_user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
-            
+
             $table->index(['invite_code']);
             $table->index(['status']);
             $table->index(['creator_id']);

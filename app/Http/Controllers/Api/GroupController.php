@@ -20,7 +20,7 @@ class GroupController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        
+
         $groups = $user->groups()
             ->with(['activeMembers'])
             ->orderBy('updated_at', 'desc')
@@ -45,7 +45,7 @@ class GroupController extends Controller
 
         /** @var User $user */
         $user = $request->user();
-        
+
         $group = Group::create([
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
@@ -53,7 +53,7 @@ class GroupController extends Controller
             'settings' => $validated['settings'] ?? [],
             'status' => 'active',
         ]);
-        
+
         // Add creator as admin member
         $group->members()->attach($user->id, [
             'role' => 'admin',
@@ -76,8 +76,8 @@ class GroupController extends Controller
         // Check if user is a member of the group
         /** @var User $user */
         $user = $request->user();
-        
-        if (!$group->members->contains($user)) {
+
+        if (! $group->members->contains($user)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -97,10 +97,10 @@ class GroupController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        
+
         // Check if user is admin of the group
         $membership = $group->members()->where('user_id', $user->id)->first();
-        if (!$membership || $membership->pivot->role !== 'admin') {
+        if (! $membership || $membership->pivot->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -129,7 +129,7 @@ class GroupController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        
+
         // Only creator can delete the group
         if ($group->creator_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
@@ -155,13 +155,13 @@ class GroupController extends Controller
             ->where('status', 'active')
             ->first();
 
-        if (!$group) {
+        if (! $group) {
             return response()->json(['message' => 'Invalid invite code'], 404);
         }
 
         /** @var User $user */
         $user = $request->user();
-        
+
         // Check if user is already a member
         if ($group->members->contains($user)) {
             return response()->json(['message' => 'Already a member of this group'], 400);
@@ -189,9 +189,9 @@ class GroupController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        
+
         // Check if user is a member
-        if (!$group->members->contains($user)) {
+        if (! $group->members->contains($user)) {
             return response()->json(['message' => 'Not a member of this group'], 400);
         }
 

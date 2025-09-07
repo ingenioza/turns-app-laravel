@@ -25,7 +25,7 @@ class TurnController extends Controller
         if ($groupId) {
             // Verify user has access to this group
             $group = Group::findOrFail($groupId);
-            if (!$group->members()->where('users.id', $user->id)->exists() && $group->creator_id !== $user->id) {
+            if (! $group->members()->where('users.id', $user->id)->exists() && $group->creator_id !== $user->id) {
                 return response()->json(['message' => 'You do not have access to this group'], 403);
             }
             $query->where('group_id', $groupId);
@@ -46,7 +46,7 @@ class TurnController extends Controller
                 'last_page' => $turns->lastPage(),
                 'per_page' => $turns->perPage(),
                 'total' => $turns->total(),
-            ]
+            ],
         ]);
     }
 
@@ -64,7 +64,7 @@ class TurnController extends Controller
         $group = Group::findOrFail($validated['group_id']);
 
         // Check if user is part of the group
-        if (!$group->members()->where('users.id', $request->user()->id)->exists() && 
+        if (! $group->members()->where('users.id', $request->user()->id)->exists() &&
             $group->creator_id !== $request->user()->id) {
             return response()->json(['message' => 'You are not a member of this group'], 403);
         }
@@ -96,7 +96,7 @@ class TurnController extends Controller
     {
         // Check if user has access to this turn
         $user = $request->user();
-        if (!$turn->group->members()->where('users.id', $user->id)->exists() && 
+        if (! $turn->group->members()->where('users.id', $user->id)->exists() &&
             $turn->group->creator_id !== $user->id) {
             return response()->json(['message' => 'You do not have access to this turn'], 403);
         }
@@ -221,13 +221,13 @@ class TurnController extends Controller
     /**
      * Get active turns for user or active turn for specific group
      */
-    public function active(Request $request, Group $group = null): JsonResponse
+    public function active(Request $request, ?Group $group = null): JsonResponse
     {
         $user = $request->user();
 
         if ($group) {
             // Group-specific active turn (called via /groups/{group}/turns/active)
-            if (!$group->members()->where('users.id', $user->id)->exists() && $group->creator_id !== $user->id) {
+            if (! $group->members()->where('users.id', $user->id)->exists() && $group->creator_id !== $user->id) {
                 return response()->json(['message' => 'You do not have access to this group'], 403);
             }
 
@@ -240,7 +240,7 @@ class TurnController extends Controller
             // User's active turns across all groups (called via /turns/active)
             $groupIds = $user->groups()->pluck('groups.id')
                 ->merge($user->createdGroups()->pluck('id'));
-            
+
             $turns = Turn::with(['user', 'group'])
                 ->where('status', 'active')
                 ->whereIn('group_id', $groupIds)
@@ -259,7 +259,7 @@ class TurnController extends Controller
     public function current(Request $request, Group $group): JsonResponse
     {
         // Check if user has access to this group
-        if (!$group->members()->where('users.id', $request->user()->id)->exists() && 
+        if (! $group->members()->where('users.id', $request->user()->id)->exists() &&
             $group->creator_id !== $request->user()->id) {
             return response()->json(['message' => 'You do not have access to this group'], 403);
         }
@@ -270,7 +270,7 @@ class TurnController extends Controller
             ->where('is_active', true)
             ->orderBy('turn_order')
             ->get()
-            ->map(function($member) {
+            ->map(function ($member) {
                 return [
                     'id' => $member->id,
                     'name' => $member->name,
@@ -278,7 +278,7 @@ class TurnController extends Controller
                 ];
             });
 
-        if (!$currentTurn) {
+        if (! $currentTurn) {
             return response()->json([
                 'active_turn' => null,
                 'next_user' => $this->getNextUser($group),
@@ -299,7 +299,7 @@ class TurnController extends Controller
     public function history(Request $request, Group $group): JsonResponse
     {
         // Check if user has access to this group
-        if (!$group->members()->where('users.id', $request->user()->id)->exists() && 
+        if (! $group->members()->where('users.id', $request->user()->id)->exists() &&
             $group->creator_id !== $request->user()->id) {
             return response()->json(['message' => 'You do not have access to this group'], 403);
         }
@@ -317,7 +317,7 @@ class TurnController extends Controller
                 'last_page' => $turns->lastPage(),
                 'per_page' => $turns->perPage(),
                 'total' => $turns->total(),
-            ]
+            ],
         ]);
     }
 
@@ -328,9 +328,9 @@ class TurnController extends Controller
     {
         $user = $request->user();
         $groupId = $request->query('group_id');
-        
+
         $query = $user->turns();
-        
+
         if ($groupId) {
             $query->where('group_id', $groupId);
         }
@@ -370,7 +370,7 @@ class TurnController extends Controller
     public function groupStats(Request $request, Group $group): JsonResponse
     {
         // Check if user has access to this group
-        if (!$group->members()->where('users.id', $request->user()->id)->exists() && 
+        if (! $group->members()->where('users.id', $request->user()->id)->exists() &&
             $group->creator_id !== $request->user()->id) {
             return response()->json(['message' => 'You do not have access to this group'], 403);
         }
@@ -387,9 +387,9 @@ class TurnController extends Controller
         ];
 
         // Get member statistics
-        $memberStats = $group->members()->with(['turns' => function($query) use ($group) {
+        $memberStats = $group->members()->with(['turns' => function ($query) use ($group) {
             $query->where('group_id', $group->id);
-        }])->get()->map(function($member) {
+        }])->get()->map(function ($member) {
             return [
                 'user_id' => $member->id,
                 'name' => $member->name,
@@ -424,13 +424,13 @@ class TurnController extends Controller
             ->orderBy('ended_at', 'desc')
             ->first();
 
-        if (!$lastTurn) {
+        if (! $lastTurn) {
             // No previous turns, start with first member
             $nextUser = $activeMembers->first();
         } else {
             // Find the current user's position and get next
             $currentUserOrder = $activeMembers->where('id', $lastTurn->user_id)->first()?->pivot?->turn_order;
-            
+
             if ($currentUserOrder === null) {
                 $nextUser = $activeMembers->first();
             } else {
@@ -456,22 +456,27 @@ class TurnController extends Controller
         }
 
         $seconds = round($seconds);
-        
+
         if ($seconds < 60) {
             return "{$seconds}s";
         } elseif ($seconds < 3600) {
             $minutes = floor($seconds / 60);
             $remainingSeconds = $seconds % 60;
+
             return $remainingSeconds > 0 ? "{$minutes}m {$remainingSeconds}s" : "{$minutes}m";
         } else {
             $hours = floor($seconds / 3600);
             $minutes = floor(($seconds % 3600) / 60);
             $remainingSeconds = $seconds % 60;
-            
+
             $result = "{$hours}h";
-            if ($minutes > 0) $result .= " {$minutes}m";
-            if ($remainingSeconds > 0) $result .= " {$remainingSeconds}s";
-            
+            if ($minutes > 0) {
+                $result .= " {$minutes}m";
+            }
+            if ($remainingSeconds > 0) {
+                $result .= " {$remainingSeconds}s";
+            }
+
             return $result;
         }
     }

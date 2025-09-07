@@ -17,17 +17,17 @@ class GroupFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company . ' Group',
-            'description' => $this->faker->sentence(),
+            'name' => 'Test Group '.rand(100, 999),
+            'description' => 'Test group description',
             'creator_id' => \App\Models\User::factory(),
-            'status' => $this->faker->randomElement(['active', 'inactive', 'archived']),
-            'invite_code' => strtoupper($this->faker->bothify('????????')), // Generate 8 char code
+            'status' => 'active',
+            'invite_code' => 'TEST'.rand(1000, 9999),
             'settings' => [
-                'turn_duration' => $this->faker->numberBetween(5, 60),
-                'notifications_enabled' => $this->faker->boolean(),
-                'auto_advance' => $this->faker->boolean(),
+                'turn_duration' => 30,
+                'notifications_enabled' => true,
+                'auto_advance' => false,
             ],
-            'last_turn_at' => $this->faker->optional()->dateTimeThisMonth(),
+            'last_turn_at' => null,
         ];
     }
 }

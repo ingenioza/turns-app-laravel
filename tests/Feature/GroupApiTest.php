@@ -56,18 +56,18 @@ class GroupApiTest extends TestCase
     {
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
-        
+
         // Create groups for the user
         $group1 = Group::factory()->create(['creator_id' => $user->id]);
         $group2 = Group::factory()->create(['creator_id' => $user->id]);
-        
+
         // Create group for other user
         $otherGroup = Group::factory()->create(['creator_id' => $otherUser->id]);
-        
+
         // Add user as member to their groups
         $group1->members()->attach($user->id, ['role' => 'admin', 'is_active' => true]);
         $group2->members()->attach($user->id, ['role' => 'admin', 'is_active' => true]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/groups');
@@ -80,18 +80,18 @@ class GroupApiTest extends TestCase
     {
         $creator = User::factory()->create();
         $joiner = User::factory()->create();
-        
+
         $group = Group::factory()->create([
             'creator_id' => $creator->id,
             'status' => 'active', // Ensure group is active for joining
         ]);
         $group->members()->attach($creator->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
-        
+
         // Ensure invite code is set
         if (empty($group->invite_code)) {
             $group->update(['invite_code' => $group->generateInviteCode()]);
         }
-        
+
         Sanctum::actingAs($joiner);
 
         $response = $this->postJson('/api/groups/join', [
@@ -104,7 +104,7 @@ class GroupApiTest extends TestCase
             ]);
 
         $this->assertTrue($group->fresh()->members->contains($joiner));
-        
+
         $joinerMembership = $group->members()->where('user_id', $joiner->id)->first();
         $this->assertEquals('member', $joinerMembership->pivot->role);
         $this->assertEquals(2, $joinerMembership->pivot->turn_order);
@@ -130,7 +130,7 @@ class GroupApiTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id]);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson("/api/groups/{$group->id}");
@@ -153,7 +153,7 @@ class GroupApiTest extends TestCase
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $otherUser->id]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson("/api/groups/{$group->id}");
@@ -169,7 +169,7 @@ class GroupApiTest extends TestCase
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id]);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->putJson("/api/groups/{$group->id}", [
@@ -193,7 +193,7 @@ class GroupApiTest extends TestCase
     {
         $user = User::factory()->create();
         $group = Group::factory()->create(['creator_id' => $user->id]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->deleteJson("/api/groups/{$group->id}");
