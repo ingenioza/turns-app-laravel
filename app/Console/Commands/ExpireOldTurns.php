@@ -27,15 +27,15 @@ class ExpireOldTurns extends Command
     public function handle(TurnService $turnService): int
     {
         $this->info('Checking for expired turns...');
-        
+
         $expiredCount = $turnService->expireOldTurns();
-        
+
         if ($expiredCount > 0) {
             $this->info("Expired {$expiredCount} old turns.");
         } else {
             $this->info('No expired turns found.');
         }
-        
+
         return 0;
     }
 }

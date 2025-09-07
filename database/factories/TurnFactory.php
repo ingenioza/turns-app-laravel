@@ -18,17 +18,17 @@ class TurnFactory extends Factory
     {
         $startedAt = $this->faker->dateTimeThisMonth();
         $endedAt = $this->faker->optional(0.7)->dateTimeBetween($startedAt, 'now');
-        
+
         return [
             'group_id' => \App\Models\Group::factory(),
             'user_id' => \App\Models\User::factory(),
             'started_at' => $startedAt,
             'ended_at' => $endedAt,
-            'status' => $endedAt ? 
-                $this->faker->randomElement(['completed', 'skipped']) : 
+            'status' => $endedAt ?
+                $this->faker->randomElement(['completed', 'skipped']) :
                 $this->faker->randomElement(['active', 'expired']),
-            'duration_seconds' => $endedAt ? 
-                \Carbon\Carbon::parse($startedAt)->diffInSeconds(\Carbon\Carbon::parse($endedAt)) : 
+            'duration_seconds' => $endedAt ?
+                \Carbon\Carbon::parse($startedAt)->diffInSeconds(\Carbon\Carbon::parse($endedAt)) :
                 null,
             'notes' => $this->faker->optional(0.3)->sentence(),
             'metadata' => [

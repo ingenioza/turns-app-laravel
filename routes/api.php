@@ -21,11 +21,13 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
+    Route::post('exchange', [AuthController::class, 'exchange'])
+        ->middleware(App\Http\Middleware\VerifyFirebaseToken::class);
 });
 
 // Protected routes requiring authentication
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // Auth routes for authenticated users
     Route::prefix('auth')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
@@ -34,7 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('change-password', [AuthController::class, 'changePassword']);
         Route::post('settings', [AuthController::class, 'updateSettings']);
     });
-    
+
     // User management routes
     Route::apiResource('users', UserController::class)->except(['store']);
     Route::prefix('users')->group(function () {
@@ -43,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('{user}/groups', [UserController::class, 'groups']);
         Route::post('{user}/settings', [UserController::class, 'updateSettings']);
     });
-    
+
     // Group management routes
     Route::apiResource('groups', GroupController::class);
     Route::prefix('groups')->group(function () {
@@ -54,7 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('{group}/members/{member}', [GroupController::class, 'removeMember']);
         Route::patch('{group}/members/{member}/role', [GroupController::class, 'updateMemberRole']);
     });
-    
+
     // Turn management routes
     Route::prefix('turns')->group(function () {
         Route::get('user-stats', [TurnController::class, 'userStats']);
@@ -63,7 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('{turn}/force-end', [TurnController::class, 'forceEnd']);
     });
     Route::apiResource('turns', TurnController::class)->except(['update']);
-    
+
     // Group-specific turn routes
     Route::prefix('groups/{group}/turns')->group(function () {
         Route::get('active', [TurnController::class, 'active']);

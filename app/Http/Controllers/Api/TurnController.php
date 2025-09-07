@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Turn\CompleteTurnRequest;
+use App\Http\Requests\Turn\CreateTurnRequest;
+use App\Http\Requests\Turn\ForceEndTurnRequest;
+use App\Http\Requests\Turn\SkipTurnRequest;
 use App\Http\Resources\TurnResource;
 use App\Models\Group;
 use App\Models\Turn;
@@ -53,13 +57,9 @@ class TurnController extends Controller
     /**
      * Create a new turn
      */
-    public function store(Request $request): JsonResponse
+    public function store(CreateTurnRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'group_id' => 'required|exists:groups,id',
-            'notes' => 'nullable|string|max:1000',
-            'metadata' => 'nullable|array',
-        ]);
+        $validated = $request->validated();
 
         $group = Group::findOrFail($validated['group_id']);
 
@@ -109,7 +109,7 @@ class TurnController extends Controller
     /**
      * Complete a turn
      */
-    public function complete(Request $request, Turn $turn): JsonResponse
+    public function complete(CompleteTurnRequest $request, Turn $turn): JsonResponse
     {
         // Check if user owns this turn or is admin
         if ($turn->user_id !== $request->user()->id && $turn->group->creator_id !== $request->user()->id) {
@@ -120,10 +120,7 @@ class TurnController extends Controller
             return response()->json(['message' => 'Turn is not active'], 422);
         }
 
-        $validated = $request->validate([
-            'notes' => 'nullable|string|max:1000',
-            'metadata' => 'nullable|array',
-        ]);
+        $validated = $request->validated();
 
         $endedAt = now();
         $durationSeconds = $turn->started_at ? $endedAt->diffInSeconds($turn->started_at) : 0;
@@ -145,7 +142,7 @@ class TurnController extends Controller
     /**
      * Skip a turn
      */
-    public function skip(Request $request, Turn $turn): JsonResponse
+    public function skip(SkipTurnRequest $request, Turn $turn): JsonResponse
     {
         // Check if user owns this turn or is a group admin
         if ($turn->user_id !== $request->user()->id && $turn->group->creator_id !== $request->user()->id) {
@@ -156,9 +153,7 @@ class TurnController extends Controller
             return response()->json(['message' => 'Turn is not active'], 422);
         }
 
-        $validated = $request->validate([
-            'reason' => 'nullable|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         $endedAt = now();
         $durationSeconds = $turn->started_at ? $endedAt->diffInSeconds($turn->started_at) : 0;
@@ -183,7 +178,7 @@ class TurnController extends Controller
     /**
      * Force end a turn (admin only)
      */
-    public function forceEnd(Request $request, Turn $turn): JsonResponse
+    public function forceEnd(ForceEndTurnRequest $request, Turn $turn): JsonResponse
     {
         // Check if user is group admin
         if ($turn->group->creator_id !== $request->user()->id) {
@@ -194,9 +189,7 @@ class TurnController extends Controller
             return response()->json(['message' => 'Turn is not active'], 422);
         }
 
-        $validated = $request->validate([
-            'reason' => 'required|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         $endedAt = now();
         $durationSeconds = $turn->started_at ? $endedAt->diffInSeconds($turn->started_at) : 0;

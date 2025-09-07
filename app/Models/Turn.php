@@ -18,7 +18,7 @@ class Turn extends Model
         'status',
         'duration_seconds',
         'notes',
-        'metadata'
+        'metadata',
     ];
 
     protected $casts = [
@@ -56,7 +56,7 @@ class Turn extends Model
     {
         return $this->update([
             'status' => 'completed',
-            'completed_at' => now()
+            'completed_at' => now(),
         ]);
     }
 
@@ -64,7 +64,7 @@ class Turn extends Model
     {
         return $this->update([
             'status' => 'skipped',
-            'completed_at' => now()
+            'completed_at' => now(),
         ]);
     }
 }

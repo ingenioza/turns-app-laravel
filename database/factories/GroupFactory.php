@@ -17,7 +17,7 @@ class GroupFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company . ' Group',
+            'name' => $this->faker->company.' Group',
             'description' => $this->faker->sentence(),
             'creator_id' => \App\Models\User::factory(),
             'status' => $this->faker->randomElement(['active', 'inactive', 'archived']),

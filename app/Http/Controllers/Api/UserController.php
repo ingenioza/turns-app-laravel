@@ -25,9 +25,9 @@ class UserController extends Controller
             'status' => ['nullable', 'string', 'in:active,inactive,suspended'],
         ]);
 
-        if (!empty($validated['search'])) {
+        if (! empty($validated['search'])) {
             $users = $this->userService->searchUsers($validated['search']);
-        } elseif (!empty($validated['status'])) {
+        } elseif (! empty($validated['status'])) {
             $users = User::where('status', $validated['status'])->get()->toArray();
         } else {
             $users = $this->userService->getActiveUsers();
@@ -46,7 +46,7 @@ class UserController extends Controller
         // Users can view their own profile or any other user's basic info
         /** @var User $currentUser */
         $currentUser = $request->user();
-        
+
         if ($currentUser->id === $user->id) {
             // Full profile for self
             return response()->json([
@@ -69,7 +69,7 @@ class UserController extends Controller
         $currentUser = $request->user();
 
         // Users can only update their own profile (unless admin)
-        if ($currentUser->id !== $user->id && !$currentUser->is_admin) {
+        if ($currentUser->id !== $user->id && ! $currentUser->is_admin) {
             return response()->json([
                 'message' => 'Not authorized to update this user',
             ], 403);
@@ -77,7 +77,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
-            'username' => ['sometimes', 'string', 'max:255', 'unique:users,username,' . $user->id],
+            'username' => ['sometimes', 'string', 'max:255', 'unique:users,username,'.$user->id],
             'avatar_url' => ['nullable', 'string', 'max:500', 'url'],
         ]);
 
@@ -105,7 +105,7 @@ class UserController extends Controller
         $currentUser = $request->user();
 
         // Users can only delete their own account (unless admin)
-        if ($currentUser->id !== $user->id && !$currentUser->is_admin) {
+        if ($currentUser->id !== $user->id && ! $currentUser->is_admin) {
             return response()->json([
                 'message' => 'Not authorized to delete this user',
             ], 403);
@@ -134,7 +134,7 @@ class UserController extends Controller
         $currentUser = $request->user();
 
         // Users can only view their own groups (unless admin or shared groups)
-        if ($currentUser->id !== $user->id && !$currentUser->is_admin) {
+        if ($currentUser->id !== $user->id && ! $currentUser->is_admin) {
             // Show only shared groups
             $sharedGroups = $currentUser->groups()
                 ->whereHas('members', function ($query) use ($user) {
@@ -222,6 +222,7 @@ class UserController extends Controller
             'users' => array_map(function ($user) {
                 // Remove sensitive information
                 unset($user['email'], $user['settings'], $user['is_admin']);
+
                 return $user;
             }, $users),
         ]);

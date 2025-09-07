@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
@@ -17,6 +18,66 @@ class AuthController extends Controller
     public function __construct(
         private UserService $userService
     ) {}
+
+    /**
+     * Exchange Firebase token for Sanctum token
+     */
+    public function exchange(Request $request): JsonResponse
+    {
+        try {
+            $firebaseUser = $request->attributes->get('firebase_user');
+
+            if (! $firebaseUser) {
+                return response()->json(['error' => 'No Firebase user data'], 400);
+            }
+
+            // Map Firebase claims to user data
+            $userData = $this->mapFirebaseToUserData($firebaseUser);
+
+            // Create or update user
+            $user = $this->userService->createOrUpdateFromExternalAuth($userData);
+
+            // Create Sanctum token
+            $token = $user->createToken('mobile')->plainTextToken;
+
+            Log::info('User authenticated via Firebase', [
+                'user_id' => $user->id,
+                'firebase_uid' => $firebaseUser->sub ?? null,
+            ]);
+
+            return response()->json([
+                'message' => 'Authentication successful',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'email_verified' => $user->email_verified_at !== null,
+                ],
+                'token' => $token,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Auth exchange failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json(['error' => 'Authentication failed'], 500);
+        }
+    }
+
+    /**
+     * Map Firebase user claims to our user data structure
+     */
+    private function mapFirebaseToUserData(object $firebaseUser): array
+    {
+        return [
+            'firebase_uid' => $firebaseUser->sub ?? $firebaseUser->user_id ?? null,
+            'email' => $firebaseUser->email ?? null,
+            'name' => $firebaseUser->name ?? $firebaseUser->email ?? 'Unknown User',
+            'email_verified' => ($firebaseUser->email_verified ?? false) === true,
+            'avatar_url' => $firebaseUser->picture ?? null,
+        ];
+    }
 
     /**
      * Register a new user
@@ -57,7 +118,7 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (!Auth::attempt($credentials)) {
+        if (! Auth::attempt($credentials)) {
             return response()->json([
                 'message' => 'Invalid credentials',
             ], 401);
@@ -65,10 +126,10 @@ class AuthController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        
+
         // Update last active timestamp
         $this->userService->updateLastActive($user);
-        
+
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
@@ -85,7 +146,7 @@ class AuthController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        
+
         // Update last active timestamp
         $this->userService->updateLastActive($user);
 
@@ -101,7 +162,7 @@ class AuthController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        
+
         // Revoke current token
         $user->currentAccessToken()->delete();
 
@@ -117,7 +178,7 @@ class AuthController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        
+
         // Revoke all tokens
         $user->tokens()->delete();
 
@@ -139,7 +200,7 @@ class AuthController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        if (!Hash::check($validated['current_password'], $user->password)) {
+        if (! Hash::check($validated['current_password'], $user->password)) {
             return response()->json([
                 'message' => 'Current password is incorrect',
                 'errors' => ['current_password' => ['Current password is incorrect']],

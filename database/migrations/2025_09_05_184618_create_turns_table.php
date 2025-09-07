@@ -22,7 +22,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamps();
-            
+
             $table->index(['group_id', 'status']);
             $table->index(['user_id']);
             $table->index(['started_at']);

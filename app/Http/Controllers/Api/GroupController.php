@@ -3,9 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Group\CreateGroupRequest;
+use App\Http\Requests\Group\IndexGroupRequest;
+use App\Http\Requests\Group\JoinGroupRequest;
+use App\Http\Requests\Group\UpdateGroupRequest;
+use App\Http\Requests\Group\UpdateMemberRoleRequest;
 use App\Http\Resources\GroupResource;
 use App\Models\Group;
 use App\Models\User;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -13,14 +19,17 @@ use Illuminate\Validation\Rule;
 
 class GroupController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of user's groups
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(IndexGroupRequest $request): AnonymousResourceCollection
     {
+        $this->authorize('viewAny', Group::class);
+
         /** @var User $user */
         $user = $request->user();
-        
+
         $groups = $user->groups()
             ->with(['activeMembers'])
             ->orderBy('updated_at', 'desc')
@@ -32,20 +41,15 @@ class GroupController extends Controller
     /**
      * Store a newly created group
      */
-    public function store(Request $request): JsonResponse
+    public function store(CreateGroupRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'settings' => 'nullable|array',
-            'settings.turn_duration' => 'nullable|integer|min:1|max:1440',
-            'settings.notifications_enabled' => 'nullable|boolean',
-            'settings.auto_advance' => 'nullable|boolean',
-        ]);
+        $this->authorize('create', Group::class);
+
+        $validated = $request->validated();
 
         /** @var User $user */
         $user = $request->user();
-        
+
         $group = Group::create([
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
@@ -53,7 +57,7 @@ class GroupController extends Controller
             'settings' => $validated['settings'] ?? [],
             'status' => 'active',
         ]);
-        
+
         // Add creator as admin member
         $group->members()->attach($user->id, [
             'role' => 'admin',
@@ -73,13 +77,7 @@ class GroupController extends Controller
      */
     public function show(Request $request, Group $group): JsonResponse
     {
-        // Check if user is a member of the group
-        /** @var User $user */
-        $user = $request->user();
-        
-        if (!$group->members->contains($user)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $this->authorize('view', $group);
 
         $group->load(['creator', 'activeMembers', 'turns' => function ($query) {
             $query->orderBy('started_at', 'desc')->limit(10);
@@ -93,26 +91,11 @@ class GroupController extends Controller
     /**
      * Update the specified group
      */
-    public function update(Request $request, Group $group): JsonResponse
+    public function update(UpdateGroupRequest $request, Group $group): JsonResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-        
-        // Check if user is admin of the group
-        $membership = $group->members()->where('user_id', $user->id)->first();
-        if (!$membership || $membership->pivot->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $this->authorize('update', $group);
 
-        $validated = $request->validate([
-            'name' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'status' => ['sometimes', 'required', Rule::in(['active', 'inactive', 'archived'])],
-            'settings' => 'nullable|array',
-            'settings.turn_duration' => 'nullable|integer|min:1|max:1440',
-            'settings.notifications_enabled' => 'nullable|boolean',
-            'settings.auto_advance' => 'nullable|boolean',
-        ]);
+        $validated = $request->validated();
 
         $group->update($validated);
 
@@ -127,13 +110,7 @@ class GroupController extends Controller
      */
     public function destroy(Request $request, Group $group): JsonResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-        
-        // Only creator can delete the group
-        if ($group->creator_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $this->authorize('delete', $group);
 
         $group->delete();
 
@@ -145,27 +122,22 @@ class GroupController extends Controller
     /**
      * Join a group by invite code
      */
-    public function join(Request $request): JsonResponse
+    public function join(JoinGroupRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'invite_code' => 'required|string|size:8',
-        ]);
+        $validated = $request->validated();
 
         $group = Group::where('invite_code', $validated['invite_code'])
             ->where('status', 'active')
             ->first();
 
-        if (!$group) {
+        if (! $group) {
             return response()->json(['message' => 'Invalid invite code'], 404);
         }
 
+        $this->authorize('join', $group);
+
         /** @var User $user */
         $user = $request->user();
-        
-        // Check if user is already a member
-        if ($group->members->contains($user)) {
-            return response()->json(['message' => 'Already a member of this group'], 400);
-        }
 
         // Add user as member
         $nextTurnOrder = $group->members()->max('turn_order') + 1;
@@ -187,23 +159,123 @@ class GroupController extends Controller
      */
     public function leave(Request $request, Group $group): JsonResponse
     {
+        $this->authorize('leave', $group);
+
         /** @var User $user */
         $user = $request->user();
-        
-        // Check if user is a member
-        if (!$group->members->contains($user)) {
-            return response()->json(['message' => 'Not a member of this group'], 400);
-        }
-
-        // Creator cannot leave their own group
-        if ($group->creator_id === $user->id) {
-            return response()->json(['message' => 'Group creator cannot leave the group'], 400);
-        }
 
         $group->members()->detach($user->id);
 
         return response()->json([
             'message' => 'Successfully left group',
+        ]);
+    }
+
+    /**
+     * Search for groups
+     */
+    public function search(IndexGroupRequest $request): AnonymousResourceCollection
+    {
+        $validated = $request->validated();
+
+        $query = Group::query();
+
+        if (!empty($validated['q'])) {
+            $query->where(function ($q) use ($validated) {
+                $q->where('name', 'like', '%' . $validated['q'] . '%')
+                  ->orWhere('description', 'like', '%' . $validated['q'] . '%');
+            });
+        }
+
+        if (!empty($validated['status'])) {
+            $query->where('status', $validated['status']);
+        }
+
+        $groups = $query->with(['activeMembers'])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(15);
+
+        return GroupResource::collection($groups);
+    }
+
+    /**
+     * Get group members
+     */
+    public function members(Request $request, Group $group): JsonResponse
+    {
+        $this->authorize('view', $group);
+
+        $members = $group->members()
+            ->withPivot(['role', 'joined_at', 'is_active', 'turn_order', 'settings'])
+            ->orderBy('pivot_turn_order')
+            ->get()
+            ->map(function ($member) {
+                return [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'email' => $member->email,
+                    'role' => $member->pivot->role,
+                    'joined_at' => $member->pivot->joined_at,
+                    'is_active' => $member->pivot->is_active,
+                    'turn_order' => $member->pivot->turn_order,
+                    'settings' => $member->pivot->settings,
+                ];
+            });
+
+        return response()->json([
+            'members' => $members,
+        ]);
+    }
+
+    /**
+     * Remove a member from the group
+     */
+    public function removeMember(Request $request, Group $group, User $member): JsonResponse
+    {
+        $this->authorize('manageMembers', $group);
+
+        // Cannot remove the creator
+        if ($group->creator_id === $member->id) {
+            return response()->json(['message' => 'Cannot remove group creator'], 400);
+        }
+
+        // Check if member is actually in the group
+        if (!$group->members->contains($member)) {
+            return response()->json(['message' => 'User is not a member of this group'], 400);
+        }
+
+        $group->members()->detach($member->id);
+
+        return response()->json([
+            'message' => 'Member removed successfully',
+        ]);
+    }
+
+    /**
+     * Update member role
+     */
+    public function updateMemberRole(UpdateMemberRoleRequest $request, Group $group, User $member): JsonResponse
+    {
+        $this->authorize('manageMembers', $group);
+
+        $validated = $request->validated();
+
+        // Cannot change creator role
+        if ($group->creator_id === $member->id) {
+            return response()->json(['message' => 'Cannot change creator role'], 400);
+        }
+
+        // Check if member is actually in the group
+        if (!$group->members->contains($member)) {
+            return response()->json(['message' => 'User is not a member of this group'], 400);
+        }
+
+        $group->members()->updateExistingPivot($member->id, [
+            'role' => $validated['role'],
+        ]);
+
+        return response()->json([
+            'message' => 'Member role updated successfully',
         ]);
     }
 }

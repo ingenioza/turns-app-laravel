@@ -7,21 +7,25 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles, LogsActivity;
+    use HasApiTokens, HasFactory, HasRoles, LogsActivity, Notifiable;
 
     protected $fillable = [
+        'firebase_uid',
         'name',
         'email',
+        'username',
         'password',
         'avatar_url',
         'email_verified_at',
         'last_active_at',
+        'status',
+        'settings',
     ];
 
     protected $hidden = [
@@ -52,7 +56,7 @@ class User extends Authenticatable
 
     public function hasVerifiedEmail(): bool
     {
-        return !is_null($this->email_verified_at);
+        return ! is_null($this->email_verified_at);
     }
 
     public function markAsActive(): void
@@ -71,7 +75,7 @@ class User extends Authenticatable
     // Relationships
     public function groups()
     {
-        return $this->belongsToMany(\App\Domain\Group\Group::class, 'group_members')
+        return $this->belongsToMany(\App\Domain\Group\Group::class, 'group_member')
             ->withPivot(['role', 'joined_at'])
             ->withTimestamps();
     }

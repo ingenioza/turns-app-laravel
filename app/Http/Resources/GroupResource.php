@@ -29,6 +29,9 @@ class GroupResource extends JsonResource
             'active_member_count' => $this->whenLoaded('activeMembers', function () {
                 return $this->activeMembers->count();
             }),
+            'creator' => $this->whenLoaded('creator'),
+            'active_members' => $this->whenLoaded('activeMembers'),
+            'turns' => $this->whenLoaded('turns'),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

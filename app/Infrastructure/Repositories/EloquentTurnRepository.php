@@ -14,27 +14,27 @@ class EloquentTurnRepository implements TurnRepositoryInterface
     {
         return Turn::find($id);
     }
-    
+
     public function create(array $data): Turn
     {
         return Turn::create($data);
     }
-    
+
     public function update(Turn $turn, array $data): bool
     {
         return $turn->update($data);
     }
-    
+
     public function delete(Turn $turn): bool
     {
         return $turn->delete();
     }
-    
+
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
         return Turn::paginate($perPage);
     }
-    
+
     public function findByGroup(Group $group): array
     {
         return Turn::where('group_id', $group->id)
@@ -42,7 +42,7 @@ class EloquentTurnRepository implements TurnRepositoryInterface
             ->get()
             ->toArray();
     }
-    
+
     public function findByUser(User $user): array
     {
         return Turn::where('user_id', $user->id)
@@ -50,14 +50,14 @@ class EloquentTurnRepository implements TurnRepositoryInterface
             ->get()
             ->toArray();
     }
-    
+
     public function findActiveByGroup(Group $group): ?Turn
     {
         return Turn::where('group_id', $group->id)
             ->where('status', 'active')
             ->first();
     }
-    
+
     public function findCurrentTurn(Group $group): ?Turn
     {
         return Turn::where('group_id', $group->id)
@@ -65,12 +65,12 @@ class EloquentTurnRepository implements TurnRepositoryInterface
             ->orderBy('started_at', 'desc')
             ->first();
     }
-    
+
     public function findByStatus(string $status): array
     {
         return Turn::where('status', $status)->get()->toArray();
     }
-    
+
     public function findGroupHistory(Group $group, int $limit = 50): array
     {
         return Turn::where('group_id', $group->id)
@@ -79,7 +79,7 @@ class EloquentTurnRepository implements TurnRepositoryInterface
             ->get()
             ->toArray();
     }
-    
+
     public function findUserHistory(User $user, int $limit = 50): array
     {
         return Turn::where('user_id', $user->id)
@@ -88,7 +88,7 @@ class EloquentTurnRepository implements TurnRepositoryInterface
             ->get()
             ->toArray();
     }
-    
+
     public function findExpiredTurns(): array
     {
         // Find turns that have been active for more than 24 hours
@@ -97,7 +97,7 @@ class EloquentTurnRepository implements TurnRepositoryInterface
             ->get()
             ->toArray();
     }
-    
+
     public function findLongRunningTurns(int $hoursThreshold = 24): array
     {
         return Turn::where('status', 'active')
@@ -105,11 +105,11 @@ class EloquentTurnRepository implements TurnRepositoryInterface
             ->get()
             ->toArray();
     }
-    
+
     public function getGroupStatistics(Group $group): array
     {
         $turns = Turn::where('group_id', $group->id);
-        
+
         return [
             'total_turns' => $turns->count(),
             'completed_turns' => $turns->where('status', 'completed')->count(),
@@ -121,11 +121,11 @@ class EloquentTurnRepository implements TurnRepositoryInterface
             'last_turn_at' => $turns->orderBy('started_at', 'desc')->first()?->started_at,
         ];
     }
-    
+
     public function getUserStatistics(User $user): array
     {
         $turns = Turn::where('user_id', $user->id);
-        
+
         return [
             'total_turns' => $turns->count(),
             'completed_turns' => $turns->where('status', 'completed')->count(),

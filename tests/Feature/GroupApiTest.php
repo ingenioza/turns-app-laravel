@@ -6,15 +6,56 @@ use App\Models\Group;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class GroupApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_create_group()
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        // Create roles and permissions for testing
+        $this->app['db']->connection()->getPdo()->exec("PRAGMA foreign_keys=1");
+        
+        // Create permissions
+        $permissions = [
+            'groups.view', 'groups.create', 'groups.update', 'groups.delete',
+            'groups.join', 'groups.leave', 'groups.members.view', 
+            'groups.members.add', 'groups.members.remove', 'groups.members.update',
+            'turns.view', 'turns.create', 'turns.update', 'turns.delete', 'turns.assign'
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission]);
+        }
+
+        // Create roles
+        $memberRole = Role::create(['name' => 'member']);
+        $adminRole = Role::create(['name' => 'admin']);
+
+        // Assign permissions to roles
+        $memberRole->givePermissionTo([
+            'groups.view', 'groups.create', 'groups.join', 'groups.leave',
+            'groups.members.view', 'turns.view',
+        ]);
+
+        $adminRole->givePermissionTo(Permission::all());
+    }
+
+    protected function createUserWithRole(string $role = 'member'): User
     {
         $user = User::factory()->create();
+        $user->assignRole($role);
+        return $user;
+    }
+
+    public function test_user_can_create_group()
+    {
+        $user = $this->createUserWithRole('member');
         Sanctum::actingAs($user);
 
         $response = $this->postJson('/api/groups', [
@@ -54,20 +95,20 @@ class GroupApiTest extends TestCase
 
     public function test_user_can_list_their_groups()
     {
-        $user = User::factory()->create();
-        $otherUser = User::factory()->create();
-        
+        $user = $this->createUserWithRole('member');
+        $otherUser = $this->createUserWithRole('member');
+
         // Create groups for the user
         $group1 = Group::factory()->create(['creator_id' => $user->id]);
         $group2 = Group::factory()->create(['creator_id' => $user->id]);
-        
+
         // Create group for other user
         $otherGroup = Group::factory()->create(['creator_id' => $otherUser->id]);
-        
+
         // Add user as member to their groups
         $group1->members()->attach($user->id, ['role' => 'admin', 'is_active' => true]);
         $group2->members()->attach($user->id, ['role' => 'admin', 'is_active' => true]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson('/api/groups');
@@ -78,20 +119,20 @@ class GroupApiTest extends TestCase
 
     public function test_user_can_join_group_with_invite_code()
     {
-        $creator = User::factory()->create();
-        $joiner = User::factory()->create();
-        
+        $creator = $this->createUserWithRole('member');
+        $joiner = $this->createUserWithRole('member');
+
         $group = Group::factory()->create([
             'creator_id' => $creator->id,
             'status' => 'active', // Ensure group is active for joining
         ]);
         $group->members()->attach($creator->id, ['role' => 'admin', 'is_active' => true, 'turn_order' => 1]);
-        
+
         // Ensure invite code is set
         if (empty($group->invite_code)) {
             $group->update(['invite_code' => $group->generateInviteCode()]);
         }
-        
+
         Sanctum::actingAs($joiner);
 
         $response = $this->postJson('/api/groups/join', [
@@ -104,7 +145,7 @@ class GroupApiTest extends TestCase
             ]);
 
         $this->assertTrue($group->fresh()->members->contains($joiner));
-        
+
         $joinerMembership = $group->members()->where('user_id', $joiner->id)->first();
         $this->assertEquals('member', $joinerMembership->pivot->role);
         $this->assertEquals(2, $joinerMembership->pivot->turn_order);
@@ -112,8 +153,10 @@ class GroupApiTest extends TestCase
 
     public function test_user_cannot_join_group_with_invalid_invite_code()
     {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $creator = $this->createUserWithRole('member');
+        $joiner = $this->createUserWithRole('member');
+
+        Sanctum::actingAs($joiner);
 
         $response = $this->postJson('/api/groups/join', [
             'invite_code' => 'INVALID1',
@@ -127,10 +170,10 @@ class GroupApiTest extends TestCase
 
     public function test_user_can_view_group_details_if_member()
     {
-        $user = User::factory()->create();
+        $user = $this->createUserWithRole('member');
         $group = Group::factory()->create(['creator_id' => $user->id]);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson("/api/groups/{$group->id}");
@@ -150,26 +193,26 @@ class GroupApiTest extends TestCase
 
     public function test_user_cannot_view_group_details_if_not_member()
     {
-        $user = User::factory()->create();
-        $otherUser = User::factory()->create();
+        $user = $this->createUserWithRole('member');
+        $otherUser = $this->createUserWithRole('member');
         $group = Group::factory()->create(['creator_id' => $otherUser->id]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->getJson("/api/groups/{$group->id}");
 
         $response->assertStatus(403)
             ->assertJson([
-                'message' => 'Unauthorized',
+                'message' => 'This action is unauthorized.',
             ]);
     }
 
     public function test_admin_can_update_group()
     {
-        $user = User::factory()->create();
+        $user = $this->createUserWithRole('admin');
         $group = Group::factory()->create(['creator_id' => $user->id]);
         $group->members()->attach($user->id, ['role' => 'admin', 'is_active' => true]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->putJson("/api/groups/{$group->id}", [
@@ -191,9 +234,9 @@ class GroupApiTest extends TestCase
 
     public function test_creator_can_delete_group()
     {
-        $user = User::factory()->create();
+        $user = $this->createUserWithRole('admin');
         $group = Group::factory()->create(['creator_id' => $user->id]);
-        
+
         Sanctum::actingAs($user);
 
         $response = $this->deleteJson("/api/groups/{$group->id}");
