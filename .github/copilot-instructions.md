@@ -1,1100 +1,143 @@
-# GitHub Copilot Instructions - Laravel Project
+# GitHub Copilot Instructions — Laravel Project (Turns API & Web)
 
-You are an expert Laravel/PHP developer working on the "Turns" app backend - a comprehensive API and web interface for group turn-taking and decision-making. This is a standalone Laravel project serving both mobile apps and web users.
+You are an expert Laravel/PHP developer working on the **Turns** backend API and the Inertia.js web UI.
+
+## 🚦 Project Constraints (never change)
+- **Backend**: Laravel 12.4.x, PHP 8.3+, MySQL 8+, Redis  
+- **Frontend**: **Vue 3.5** + **Inertia.js 2.1**, Vite 7, Tailwind 4.1  
+- **Packages**: spatie/laravel-permission, spatie/laravel-activitylog, spatie/laravel-medialibrary  
+- **Testing**: Pest v4 (unit, feature, **and browser** tests); QA with PHPStan (max level), Laravel Pint  
+- **IDs**: UUID/ULID primary keys  
+- **AuthZ**: Policies + Spatie permissions  
+- **Validation**: **Form Requests only**  
+- **Forbidden**: Jetstream/Fortify; stack changes without ADR approval
+
+## Mission
+Deliver a production-ready MVP:
+- Firebase token exchange (mobile/web identity → API token/session)
+- Groups CRUD & join via code/link
+- Turn algorithms: random, round-robin, weighted (service pattern)
+- History & fairness summaries
+- Notifications fan-out (queue + retries)
+- Inertia.js web UI (Vue 3.5 + Tailwind 4.1)
+- **Pest v4** test coverage across **unit/feature/browser**
+
+## API Contract Discipline
+- This repo is the **authoritative contract** for **all clients** (Flutter mobile + Inertia web).
+- Contract lives in `/docs/api-contract.md`.  
+- When changing endpoints or shapes:
+  1) Update `/docs/api-contract.md` + fixtures and **feature tests**,
+  2) Post a sync message to Flutter (see **Cross-Repo Messaging Protocol**),
+  3) Only then implement code changes and merge.
+
+## Context Hygiene
+- Treat `/docs/**` as the source of truth. Open only what you need per task.
+- Always update `/docs/checklists/*`, `/docs/plans/next-actions.md`, and `/docs/progress.md` when behavior changes.
+- Avoid silent drift between code and docs.
+
+## Cross-Repo Messaging Protocol (Flutter ↔ Laravel)
+Use Markdown “mailboxes” for asynchronous coordination.
+
+**Files in this repo**
+- `sync/inbox.md`   — Messages from Flutter to Backend.
+- `sync/outbox.md`  — Messages from Backend to Flutter.
+
+**Mirroring (if repos are siblings under the same parent folder):**
+- Also write a copy to: `../turns-flutter/sync/inbox.md` (create if missing).
+- If sibling path not available, **note “Mirror pending”** at the top of your `sync/outbox.md`.
+
+**Message Format (append to the bottom)**
+```markdown
+## SYNC MESSAGE
+From: laravel
+To: flutter
+Type: API_READY | QUESTION | BLOCKER | CONTRACT_CHANGE | RELEASE_TAG
+Relates: /docs/api-contract.md#<anchor> (if applicable)
+Summary: <1–3 sentences>
+Checklist:
+- [x] Contract updated
+- [x] Feature tests updated
+- [x] Sample payloads attached (see sync/fixtures/*.json)
+Artifacts:
+- Branch/PR: <branch or #id>
+- Commit: <sha>
+- Tag: vX.Y.Z (if release)
+Timestamp: 2025-09-07T00:00:00Z
+```
+
+**Agent loop requirements**
+- At task start and before PR: **read** `sync/inbox.md`, process any items addressed “To: laravel.”
+- After contract/API changes: **write** a message to `sync/outbox.md` and mirror it.
+
+## CI Failure Handling (mandatory)
+- After pushing, **wait for CI**. Do not continue while red.
+- If CI fails:
+  1) Copy the exact error summary into `/docs/progress.md` under **CI Failures**,
+  2) Reproduce locally (PHPStan, Pint, Pest, Vite),
+  3) Fix; extend tests if needed,
+  4) Push; repeat until green.
 
 ## CRITICAL: Git Commit Workflow
+**NEVER FORGET TO COMMIT.** Commit small, logical slices frequently (every 30–60 minutes or completion of a test/feature).
 
-**NEVER FORGET TO COMMIT CODE**: After completing any significant functionality, feature, or task, you MUST commit the code to git with a proper commit message. This is a fundamental requirement for all development work.
-
-### When to Commit:
-- After implementing a new feature or component
-- After fixing a bug or issue
-- After refactoring code
-- After adding tests
-- After updating documentation
-- Every 30-60 minutes of active development
-- Before switching contexts or tasks
-
-### Commit Message Format:
+### Commit Message Format
 ```
-type(scope): Brief description
+type(scope): brief description
 
-Optional longer description explaining what and why
-
-Examples:
-feat(auth): Add Sanctum API authentication with token management
-fix(groups): Resolve group membership validation bug
-docs(api): Update API documentation with new endpoints
-refactor(services): Extract turn algorithm logic to service classes
-test(units): Add comprehensive tests for group management
+feat(auth): Exchange Firebase ID token for API token
+fix(groups): Prevent duplicate participant names in request
+docs(api): Update /turns/next response schema
+test(browser): Add E2E for turn assignment flow
 ```
-
-### Commit Process:
-1. `git add .` (or specific files)
-2. `git status` (verify what's being committed)
-3. `git commit -m "proper commit message"`
-4. Continue with next task
-
-## Project Context
-
-**Organization**: inGenIO (ingenioza)  
-**Repository**: https://github.com/ingenioza/turns-app-laravel
-**Project Type**: Laravel backend with DDD architecture and comprehensive API
-
-This Laravel application provides:
-- **RESTful API**: Complete API for Flutter mobile/web app integration
-- **Web Interface**: Full-featured web application using Inertia.js + React + TypeScript
-- **Authentication System**: Multi-provider OAuth (Google, Apple) + email/password
-- **Group Management**: Persistent groups with participant management and sharing
-- **Turn Algorithm Engine**: Multiple algorithms (random, round-robin, weighted, custom)
-- **Real-time Features**: Push notifications and live updates
-- **Activity Tracking**: Comprehensive logging and analytics
-- **Permission System**: Role-based access control
-
-## Technology Stack & Architecture
-
-### Backend Technologies
-- **Framework**: Laravel 12 (PHP 8.4+)
-- **Database**: MySQL 8.0+ / PostgreSQL 15+ (production)
-- **Cache**: Redis for sessions, cache, and queues
-- **Queue System**: Redis with Laravel Horizon for monitoring
-- **Search**: Laravel Scout with Meilisearch/Algolia
-- **Storage**: Local development, S3 for production
-- **Mail**: Laravel Mail with Mailtrap (dev), SendGrid (prod)
-
-### Frontend Technologies (Inertia.js Web Interface)
-- **Framework**: Inertia.js + React 18 + TypeScript
-- **Styling**: Tailwind CSS 3+ with HeadlessUI components
-- **Build Tool**: Vite for fast builds and HMR
-- **State Management**: React Context + Custom hooks
-- **Forms**: Inertia.js forms with validation
-- **Icons**: Heroicons and Lucide React
-
-### Required Packages
-- **Authentication**: Laravel Sanctum for API, Laravel Breeze for web
-- **Permissions**: spatie/laravel-permission for role-based access
-- **Activity Logging**: spatie/laravel-activitylog for audit trails
-- **Settings**: spatie/laravel-settings for app configuration
-- **Validation**: spatie/laravel-validation-rules for enhanced validation
-- **Route Caching**: tightenco/ziggy for JavaScript route generation
-- **Testing**: Pest PHP for testing framework
-
-## Development Workflow Requirements
-
-### Git Integration MANDATORY
-**EVERY development session must include proper git commits:**
-
-1. **Start each task**: Check current git status and plan commits
-2. **During development**: Commit logical chunks of work (not massive commits)
-3. **After completing features**: Always commit with descriptive messages
-4. **Before context switches**: Commit work-in-progress with clear WIP message
-5. **End of session**: Ensure all work is committed and pushed
-
-### Development Process
-1. **Plan** → Break down task into committable chunks
-2. **Code** → Implement feature/fix with proper structure
-3. **Test** → Verify functionality works as expected
-4. **Commit** → Git commit with proper message
-5. **Repeat** → Continue with next logical chunk
-
-## Architecture Patterns
-
-### Laravel Application Structure
-```
-app/
-├── Actions/                          # Single-purpose business logic
-│   ├── Group/                        # Group-related actions
-│   ├── Turn/                         # Turn algorithm actions
-│   └── Participant/                  # Participant management actions
-├── Events/                           # Domain events
-├── Listeners/                        # Event listeners
-├── Http/
-│   ├── Controllers/
-│   │   ├── Api/                      # API controllers for mobile app
-│   │   └── Web/                      # Web controllers for Inertia
-│   ├── Middleware/                   # Custom middleware
-│   ├── Requests/                     # Form request validation
-│   └── Resources/                    # API resources and collections
-├── Models/                           # Eloquent models
-├── Policies/                         # Authorization policies
-├── Repositories/                     # Data access layer
-├── Services/                         # External service integrations
-└── Jobs/                            # Queued jobs
-
-resources/
-├── js/
-│   ├── Components/                   # Reusable React components
-│   ├── Pages/                        # Inertia.js page components
-│   ├── Layouts/                      # Page layouts
-│   ├── Hooks/                        # Custom React hooks
-│   └── Types/                        # TypeScript type definitions
-└── css/                             # Tailwind CSS and custom styles
-```
-
-### Domain-Driven Structure
-```
-Group Management:
-├── Models: Group, Participant, GroupInvite
-├── Actions: CreateGroup, AddParticipant, ShareGroup
-├── Policies: GroupPolicy, ParticipantPolicy
-├── Events: GroupCreated, ParticipantJoined
-└── Jobs: SendGroupInvitation, NotifyGroupUpdate
-
-Turn System:
-├── Models: Turn, TurnHistory, TurnAlgorithm
-├── Actions: ExecuteTurn, RecordTurnHistory
-├── Services: TurnAlgorithmService
-└── Events: TurnExecuted, TurnCompleted
-
-User Management:
-├── Models: User, Role, Permission
-├── Actions: RegisterUser, AssignRole
-├── Policies: UserPolicy
-└── Events: UserRegistered, RoleAssigned
-```
-
-## Coding Standards & Best Practices
-
-### PHP Standards
-- Follow **PSR-12** coding standards strictly
-- Use **PHP 8.4** features (typed properties, match expressions, readonly properties)
-- Implement **strict typing** everywhere: `declare(strict_types=1);`
-- Use **meaningful variable and method names** (no abbreviations)
-- Follow **Laravel naming conventions** for all components
-
-### Laravel Specific Patterns
-```php
-<?php
-
-declare(strict_types=1);
-
-namespace App\Actions\Group;
-
-use App\Models\Group;
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
-use Spatie\Activitylog\Models\Activity;
-
-final class CreateGroupAction
-{
-    public function execute(User $user, array $data): Group
-    {
-        return DB::transaction(function () use ($user, $data) {
-            $group = Group::create([
-                'name' => $data['name'],
-                'description' => $data['description'] ?? null,
-                'user_id' => $user->id,
-                'settings' => [
-                    'algorithm' => $data['algorithm'] ?? 'random',
-                    'allow_duplicates' => $data['allow_duplicates'] ?? false,
-                ],
-            ]);
-
-            $user->assignRole('group-admin', $group);
-
-            activity()
-                ->performedOn($group)
-                ->causedBy($user)
-                ->log('Group created');
-
-            return $group->fresh();
-        });
-    }
-}
-
-// Model with proper relationships and attributes
-class Group extends Model
-{
-    use HasFactory, SoftDeletes, LogsActivity, HasRoles;
-
-    protected $fillable = [
-        'name',
-        'description',
-        'user_id',
-        'settings',
-        'is_public',
-        'invite_code',
-    ];
-
-    protected $casts = [
-        'settings' => 'array',
-        'is_public' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    protected static $logAttributes = ['*'];
-    protected static $logOnlyDirty = true;
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function participants(): HasMany
-    {
-        return $this->hasMany(Participant::class);
-    }
-
-    public function turns(): HasMany
-    {
-        return $this->hasMany(Turn::class);
-    }
-
-    public function getRouteKeyName(): string
-    {
-        return 'uuid';
-    }
-}
-```
-
-### API Design Patterns
-```php
-// API Resource with proper transformation
-class GroupResource extends JsonResource
-{
-    public function toArray($request): array
-    {
-        return [
-            'id' => $this->uuid,
-            'name' => $this->name,
-            'description' => $this->description,
-            'participant_count' => $this->participants_count,
-            'last_turn_at' => $this->last_turn_at?->toISOString(),
-            'settings' => [
-                'algorithm' => $this->settings['algorithm'],
-                'allow_duplicates' => $this->settings['allow_duplicates'],
-            ],
-            'permissions' => [
-                'can_edit' => $request->user()?->can('update', $this->resource),
-                'can_delete' => $request->user()?->can('delete', $this->resource),
-            ],
-            'links' => [
-                'self' => route('api.groups.show', $this->uuid),
-                'participants' => route('api.groups.participants.index', $this->uuid),
-                'turns' => route('api.groups.turns.index', $this->uuid),
-            ],
-        ];
-    }
-}
-
-// Form Request with comprehensive validation
-class StoreGroupRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return $this->user()?->can('create', Group::class) ?? false;
-    }
-
-    public function rules(): array
-    {
-        return [
-            'name' => ['required', 'string', 'max:255', 'min:2'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'algorithm' => ['required', 'in:random,round_robin,weighted,custom'],
-            'allow_duplicates' => ['boolean'],
-            'participants' => ['required', 'array', 'min:2', 'max:50'],
-            'participants.*.name' => ['required', 'string', 'max:100'],
-            'participants.*.weight' => ['nullable', 'integer', 'min:1', 'max:10'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'participants.min' => 'A group must have at least 2 participants.',
-            'participants.max' => 'A group cannot have more than 50 participants.',
-        ];
-    }
-}
-```
-
-## Project-Specific Requirements
-
-### Turn Algorithm Implementation
-```php
-namespace App\Services;
-
-abstract class TurnAlgorithm
-{
-    abstract public function selectNext(
-        Collection $participants,
-        ?Collection $history = null
-    ): Participant;
-
-    abstract public function getName(): string;
-    abstract public function getDescription(): string;
-}
-
-class RandomTurnAlgorithm extends TurnAlgorithm
-{
-    public function selectNext(
-        Collection $participants,
-        ?Collection $history = null
-    ): Participant {
-        return $participants->random();
-    }
-
-    public function getName(): string
-    {
-        return 'Random';
-    }
-
-    public function getDescription(): string
-    {
-        return 'Selects a random participant with equal probability for all.';
-    }
-}
-
-class RoundRobinTurnAlgorithm extends TurnAlgorithm
-{
-    public function selectNext(
-        Collection $participants,
-        ?Collection $history = null
-    ): Participant {
-        if (!$history || $history->isEmpty()) {
-            return $participants->first();
-        }
-
-        $lastTurn = $history->sortByDesc('created_at')->first();
-        $lastParticipantIndex = $participants->search(fn($p) => $p->id === $lastTurn->participant_id);
-        
-        $nextIndex = ($lastParticipantIndex + 1) % $participants->count();
-        return $participants->values()[$nextIndex];
-    }
-
-    public function getName(): string
-    {
-        return 'Round Robin';
-    }
-
-    public function getDescription(): string
-    {
-        return 'Cycles through participants in order, ensuring fair rotation.';
-    }
-}
-```
-
-### Authentication & Authorization System
-```php
-// Multi-provider authentication setup
-class AuthenticationService
-{
-    public function attemptLogin(string $email, string $password): ?User
-    {
-        if (Auth::attempt(['email' => $email, 'password' => $password])) {
-            $user = Auth::user();
-            activity()
-                ->causedBy($user)
-                ->log('User logged in');
-            return $user;
-        }
-        return null;
-    }
-
-    public function loginWithProvider(string $provider, array $userData): User
-    {
-        $user = User::firstOrCreate(
-            ['email' => $userData['email']],
-            [
-                'name' => $userData['name'],
-                'provider' => $provider,
-                'provider_id' => $userData['id'],
-                'email_verified_at' => now(),
-            ]
-        );
-
-        Auth::login($user);
-        
-        activity()
-            ->causedBy($user)
-            ->withProperties(['provider' => $provider])
-            ->log('User logged in via OAuth');
-
-        return $user;
-    }
-}
-
-// Role and permission setup
-class GroupPolicy
-{
-    public function viewAny(User $user): bool
-    {
-        return true; // All authenticated users can view groups
-    }
-
-    public function view(User $user, Group $group): bool
-    {
-        return $group->is_public || 
-               $user->id === $group->user_id ||
-               $user->hasRole('member', $group);
-    }
-
-    public function create(User $user): bool
-    {
-        return $user->hasVerifiedEmail();
-    }
-
-    public function update(User $user, Group $group): bool
-    {
-        return $user->hasRole(['admin', 'moderator'], $group);
-    }
-
-    public function delete(User $user, Group $group): bool
-    {
-        return $user->id === $group->user_id ||
-               $user->hasRole('admin', $group);
-    }
-}
-```
-
-## Frontend (React + Inertia.js) Patterns
-
-### TypeScript Interfaces
-```typescript
-// Type definitions for Laravel resources
-interface Group {
-  id: string;
-  name: string;
-  description?: string;
-  participant_count: number;
-  last_turn_at?: string;
-  settings: {
-    algorithm: 'random' | 'round_robin' | 'weighted' | 'custom';
-    allow_duplicates: boolean;
-  };
-  permissions: {
-    can_edit: boolean;
-    can_delete: boolean;
-  };
-  links: {
-    self: string;
-    participants: string;
-    turns: string;
-  };
-}
-
-interface Participant {
-  id: string;
-  name: string;
-  weight?: number;
-  avatar?: string;
-  turn_count: number;
-  last_turn_at?: string;
-}
-
-// Inertia.js page props
-interface PageProps {
-  auth: {
-    user: User;
-  };
-  flash: {
-    success?: string;
-    error?: string;
-  };
-  errors: Record<string, string>;
-}
-```
-
-### React Component Patterns
-```typescript
-// Inertia.js page component
-interface GroupsIndexProps extends PageProps {
-  groups: {
-    data: Group[];
-    links: PaginationLinks;
-    meta: PaginationMeta;
-  };
-  filters: {
-    search?: string;
-    algorithm?: string;
-  };
-}
-
-export default function GroupsIndex({ groups, filters }: GroupsIndexProps) {
-  const { data, setData, get, processing } = useForm({
-    search: filters.search || '',
-    algorithm: filters.algorithm || '',
-  });
-
-  const handleSearch = (e: FormEvent) => {
-    e.preventDefault();
-    get(route('groups.index'), {
-      preserveState: true,
-      preserveScroll: true,
-    });
-  };
-
-  return (
-    <AuthenticatedLayout title="Groups">
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">My Groups</h1>
-          <Link
-            href={route('groups.create')}
-            className="btn-primary"
-          >
-            Create Group
-          </Link>
-        </div>
-
-        <GroupsFilter
-          data={data}
-          setData={setData}
-          onSubmit={handleSearch}
-          processing={processing}
-        />
-
-        <GroupsList groups={groups.data} />
-
-        <Pagination links={groups.links} meta={groups.meta} />
-      </div>
-    </AuthenticatedLayout>
-  );
-}
-```
-
-## Database Design & Migrations
-
-### Migration Best Practices
-```php
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('groups', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('uuid')->unique()->index();
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->json('settings')->default('{}');
-            $table->boolean('is_public')->default(false);
-            $table->string('invite_code', 10)->unique()->nullable();
-            $table->timestamp('last_turn_at')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-
-            $table->index(['user_id', 'created_at']);
-            $table->index(['is_public', 'created_at']);
-            $table->index('invite_code');
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('groups');
-    }
-};
-```
-
-## Testing Strategy
-
-### Feature Testing with Pest
-```php
-it('allows authenticated users to create groups', function () {
-    $user = User::factory()->create();
-    
-    $response = $this->actingAs($user)
-        ->post(route('groups.store'), [
-            'name' => 'Test Group',
-            'description' => 'A test group',
-            'algorithm' => 'random',
-            'participants' => [
-                ['name' => 'Alice'],
-                ['name' => 'Bob'],
-            ],
-        ]);
-
-    $response->assertRedirect();
-    
-    $this->assertDatabaseHas('groups', [
-        'name' => 'Test Group',
-        'user_id' => $user->id,
-    ]);
-
-    expect(Group::where('name', 'Test Group')->first())
-        ->participants
-        ->toHaveCount(2);
-});
-
-it('prevents unauthorized access to private groups', function () {
-    $owner = User::factory()->create();
-    $unauthorized = User::factory()->create();
-    
-    $group = Group::factory()
-        ->for($owner)
-        ->private()
-        ->create();
-
-    $response = $this->actingAs($unauthorized)
-        ->get(route('groups.show', $group));
-
-    $response->assertForbidden();
-});
-
-it('executes turn algorithms correctly', function () {
-    $user = User::factory()->create();
-    $group = Group::factory()
-        ->for($user)
-        ->withParticipants(3)
-        ->create(['settings' => ['algorithm' => 'round_robin']]);
-
-    $response = $this->actingAs($user)
-        ->post(route('groups.turns.store', $group));
-
-    $response->assertOk();
-    
-    $turn = $group->turns()->latest()->first();
-    expect($turn)->not->toBeNull();
-    expect($turn->participant)->toBeInstanceOf(Participant::class);
-});
-```
-
-## Performance & Optimization
-
-### Database Optimization
-```php
-// Eager loading to prevent N+1 queries
-class GroupController extends Controller
-{
-    public function index(): Response
-    {
-        $groups = Group::query()
-            ->with(['participants', 'user'])
-            ->withCount('participants')
-            ->latest('last_turn_at')
-            ->paginate(15);
-
-        return Inertia::render('Groups/Index', [
-            'groups' => GroupResource::collection($groups),
-        ]);
-    }
-}
-
-// Query optimization with indexes
-Group::query()
-    ->where('is_public', true)
-    ->where('created_at', '>', now()->subDays(30))
-    ->orderBy('last_turn_at', 'desc')
-    ->limit(50)
-    ->get();
-```
-
-### Caching Strategy
-```php
-class GroupService
-{
-    public function getPopularGroups(): Collection
-    {
-        return Cache::remember('popular_groups', 3600, function () {
-            return Group::query()
-                ->where('is_public', true)
-                ->withCount('participants')
-                ->having('participants_count', '>=', 5)
-                ->orderBy('participants_count', 'desc')
-                ->limit(20)
-                ->get();
-        });
-    }
-
-    public function clearGroupCache(Group $group): void
-    {
-        Cache::forget("group_{$group->id}");
-        Cache::forget('popular_groups');
-    }
-}
-```
-
-## Security Implementation
-
-### API Security
-```php
-// Rate limiting
-Route::middleware(['auth:sanctum', 'throttle:api'])
-    ->prefix('api/v1')
-    ->group(function () {
-        Route::apiResource('groups', GroupController::class);
-        Route::post('groups/{group}/turns', [TurnController::class, 'store'])
-            ->middleware('throttle:turns');
-    });
-
-// Custom middleware for group access
-class EnsureGroupAccess
-{
-    public function handle(Request $request, Closure $next): Response
-    {
-        $group = $request->route('group');
-        
-        if (!$request->user()->can('view', $group)) {
-            abort(403, 'Access denied to this group.');
-        }
-
-        return $next($request);
-    }
-}
-```
-
-### Input Validation & Sanitization
-```php
-class TurnRequest extends FormRequest
-{
-    public function rules(): array
-    {
-        return [
-            'algorithm_override' => ['nullable', 'in:random,round_robin,weighted'],
-            'exclude_participants' => ['nullable', 'array'],
-            'exclude_participants.*' => ['exists:participants,id'],
-        ];
-    }
-
-    public function validated($key = null, $default = null): array
-    {
-        $validated = parent::validated($key, $default);
-        
-        // Additional validation logic
-        if (isset($validated['exclude_participants'])) {
-            $group = $this->route('group');
-            $availableParticipants = $group->participants->count() - 
-                count($validated['exclude_participants']);
-                
-            if ($availableParticipants < 1) {
-                throw ValidationException::withMessages([
-                    'exclude_participants' => 'Cannot exclude all participants.',
-                ]);
-            }
-        }
-
-        return $validated;
-    }
-}
-```
-
-## Code Generation Guidelines
-
-When generating code, always:
-
-1. **Follow Clean Architecture** with proper separation of concerns
-2. **Use Actions** for complex business logic operations
-3. **Implement proper validation** in Form Requests
-4. **Add comprehensive error handling** with custom exceptions
-5. **Include authorization checks** using Policies
-6. **Write corresponding tests** using Pest PHP
-7. **Add activity logging** for audit trails
-8. **Use proper database relationships** and constraints
-9. **Implement caching** for performance optimization
-10. **Follow security best practices** for all endpoints
-
-## Quality Checklist
-
-Before suggesting code, ensure:
-- [ ] Follows Laravel conventions and PSR-12 standards
-- [ ] Uses strict typing and PHP 8.4 features
-- [ ] Implements proper validation and authorization
-- [ ] Includes comprehensive error handling
-- [ ] Has corresponding Pest tests
-- [ ] Uses Spatie packages correctly
-- [ ] Follows security best practices
-- [ ] Implements proper database relationships
-- [ ] Includes activity logging where appropriate
-- [ ] Optimizes for performance with proper indexing
-- [ ] Uses proper TypeScript types for frontend
-- [ ] Follows React best practices for Inertia components
-
-## Constraints & Requirements
-
-- **PHP Version**: 8.4+
-- **Laravel Version**: 12.x
-- **Database**: MySQL 8.0+ or PostgreSQL 15+
-- **Node.js**: 18+ for frontend build
-- **Testing**: Pest PHP with 90%+ coverage
-- **Performance**: API responses under 200ms
-- **Security**: OWASP compliance required
-- **Accessibility**: WCAG 2.1 AA for web interface
 
 ---
 
-**Organization**: inGenIO - Building innovative productivity tools
+## 🔄 Work Loop (after Phase 0, never skip)
+1. **Select Task** → top unchecked item in active checklist  
+2. **Branch** → `feature/<epic>-<short-task>` from `develop`  
+3. **Plan** → `/docs/tasks/YYYYMMDD-<slug>.md` (Scope, AC, Touchpoints, Tests)  
+4. **Implement** → small vertical slice (≤200 LOC or ≤10 files) with **Pest tests**  
+5. **Validate** → **Pint**, **PHPStan (max)**, **Pest**, **Vite build** (web)  
+6. **Commit** → Conventional commits, small chunks; push branch  
+7. **Docs Update** → update `/docs/progress.md`; tick checklist item  
+8. **PR** → to `develop` using template; **CI must be green**  
+9. **Repeat** → after merge, pick next item  
 
-## Technology Stack
+## 🔒 Git Rules (must follow)
+- Protected branches: **main**, **develop**  
+- Branch names: `feature/...`, `fix/...`, `chore/...`  
+- No giant commits; always commit in slices  
+- Conventional commits only  
+- **Feature work**: from `develop` → PR to `develop`  
+- **Bugfixes**: `fix/<issue>` → `develop`  
+- **Chores**: `chore/<task>`  
+- **Release**: merge approved `develop` → `main`, tag `vX.Y.Z`  
+- **Hotfix**: branch from `main` → merge back into `main` + `develop`  
+- **CI must pass** before merging any PR.
 
-### Backend
-- **Framework**: Laravel 12 (PHP 8.4+)
-- **Database**: MySQL/PostgreSQL
-- **Queue**: Redis
-- **Storage**: Local/S3
-- **Testing**: PHPUnit
+## Order of Execution
+Follow `/docs/checklists/mvp-checklist.md`. For each step:
+1) Read relevant `/docs` sections,  
+2) Implement incrementally,  
+3) Write/extend **unit, feature, and browser tests**,  
+4) Run tests; commit,  
+5) Update checklists and `/docs/plans/next-actions.md`.
 
-### Frontend
-- **Framework**: Inertia.js + React 18 + TypeScript
-- **Styling**: Tailwind CSS
-- **Build Tool**: Vite
+## Technology & Patterns (concise)
+- **Laravel 12.4.x**, PHP 8.3+; MySQL 8; Redis queues; Horizon (optional)
+- **Vue 3.5 + Inertia 2.1 + Tailwind 4.1**
+- **FormRequests** for validation; **Policies** + Spatie for authz
+- Services for business logic; Events/Listeners/Jobs for side-effects
+- Notifications fan-out via queued Jobs (backoff + dead-letter logging)
+- E2E/browser tests using **Pest v4 Browser** group
 
-### Required Packages
-- **Permissions**: spatie/laravel-permission
-- **Activity Logging**: spatie/laravel-activitylog
-- **API Resources**: Laravel Sanctum
-- **Frontend Integration**: inertiajs/inertia-laravel, tightenco/ziggy
+## Testing Scope (Pest v4)
+- **Unit**: Services, Policies, FormRequests, Action classes
+- **Feature (API)**: `/auth/exchange`, `/groups`, `/groups/join`, `/groups/{id}/participants`, `/turns/next`, `/turns/history`, `/devices`
+- **Browser (E2E)**: login → create/join group → run turn (all algorithms) → history/fairness → notifications UI; error & offline states
 
-## Architecture Patterns
-
-### Follow Laravel Best Practices
-- **Repository Pattern**: For data access abstraction
-- **Action Pattern**: For complex business logic operations
-- **Service Pattern**: For external integrations
-- **Event/Listener Pattern**: For decoupled features
-- **Policy Pattern**: For authorization logic
-
-### Project Structure
-```
-app/
-├── Actions/        # Business logic actions
-├── Events/         # Domain events
-├── Http/
-│   ├── Controllers/    # API and web controllers
-│   ├── Requests/       # Form request validation
-│   └── Resources/      # API resources
-├── Models/         # Eloquent models
-├── Policies/       # Authorization policies
-├── Repositories/   # Data access layer
-└── Services/       # External service integrations
-
-resources/
-├── js/
-│   ├── Components/     # React components
-│   ├── Pages/          # Inertia.js pages
-│   └── Types/          # TypeScript definitions
-└── css/           # Tailwind CSS
-```
-
-## Coding Standards
-
-### PHP Standards
-- Follow **PSR-12** coding standards
-- Use **PHP 8.4** features (typed properties, match expressions, etc.)
-- Implement **strict typing** where possible
-- Use **meaningful variable and method names**
-- Follow **Laravel naming conventions**
-
-### Database Design
-- Use **proper foreign key constraints**
-- Implement **soft deletes** where appropriate
-- Create **database indexes** for performance
-- Use **migration files** for all schema changes
-- Follow **Laravel migration conventions**
-
-### API Design
-- Follow **RESTful API principles**
-- Use **proper HTTP status codes**
-- Implement **consistent error responses**
-- Use **API versioning** when necessary
-- Include **comprehensive API documentation**
-
-## Required Patterns
-
-### Models & Relationships
-```php
-class Group extends Model
-{
-    use HasFactory, SoftDeletes;
-    use LogsActivity, HasRoles; // Spatie packages
-    
-    protected $fillable = [...];
-    protected $casts = [...];
-    
-    // Always include proper relationships
-    public function participants(): HasMany { }
-    public function turns(): HasMany { }
-}
-```
-
-### Actions for Business Logic
-```php
-class CreateTurnAction
-{
-    public function execute(Group $group, array $data): Turn
-    {
-        // Complex business logic here
-        // Include proper validation and error handling
-    }
-}
-```
-
-### API Resources
-```php
-class GroupResource extends JsonResource
-{
-    public function toArray($request): array
-    {
-        // Consistent API response format
-    }
-}
-```
-
-### Form Requests
-```php
-class StoreGroupRequest extends FormRequest
-{
-    public function authorize(): bool { }
-    public function rules(): array { }
-}
-```
-
-## Spatie Package Integration
-
-### Permissions (spatie/laravel-permission)
-- Use **roles and permissions** for authorization
-- Implement **policies** for complex authorization logic
-- Use **middleware** for route protection
-- Create **seeders** for default roles/permissions
-
-### Activity Log (spatie/laravel-activitylog)
-- Log **all significant user actions**
-- Include **proper activity descriptions**
-- Log **model changes** automatically
-- Use for **audit trails** and **notifications**
-
-```php
-// In models
-use LogsActivity;
-
-protected static $logAttributes = ['*'];
-protected static $logOnlyDirty = true;
-
-// Manual logging
-activity()
-    ->performedOn($group)
-    ->causedBy($user)
-    ->log('User joined group');
-```
-
-## Frontend (React + Inertia.js)
-
-### TypeScript Requirements
-- Use **strict TypeScript** configuration
-- Define **proper interfaces** for all data
-- Use **type-safe** API calls
-- Implement **proper error boundaries**
-
-### React Best Practices
-- Use **functional components** with hooks
-- Implement **proper state management**
-- Use **React.memo** for performance optimization
-- Follow **React accessibility** guidelines
-
-### Inertia.js Patterns
-```typescript
-// Page components
-interface Props {
-    groups: Group[];
-    user: User;
-}
-
-export default function GroupsIndex({ groups, user }: Props) {
-    // Component implementation
-}
-
-// Forms with Inertia
-const { data, setData, post, processing, errors } = useForm({
-    name: '',
-    description: '',
-});
-```
-
-## Testing Requirements
-
-### Backend Testing
-- Write **feature tests** for API endpoints
-- Write **unit tests** for actions and services
-- Use **factories** for test data
-- Test **authorization** and **validation**
-- Achieve **80%+ test coverage**
-
-### Frontend Testing
-- Write **component tests** for React components
-- Test **user interactions** and **form submissions**
-- Mock **API calls** appropriately
-- Test **error states** and **loading states**
-
-## Security Requirements
-
-### API Security
-- Use **Laravel Sanctum** for API authentication
-- Implement **rate limiting** on API routes
-- Validate **all user inputs**
-- Use **HTTPS** in production
-- Implement **CORS** properly
-
-### Authorization
-- Use **policies** for complex authorization
-- Implement **middleware** for route protection
-- Follow **principle of least privilege**
-- Log **security-related events**
-
-## Performance Requirements
-
-### Database Optimization
-- Use **eager loading** to prevent N+1 queries
-- Implement **database indexing**
-- Use **query optimization**
-- Implement **caching** where appropriate
-
-### Frontend Optimization
-- Implement **code splitting**
-- Use **lazy loading** for components
-- Optimize **bundle size**
-- Implement **proper caching strategies**
-
-## Feature-Specific Requirements
-
-### Turn Algorithms
-- Implement as **strategy pattern**
-- Support **configurable algorithms**
-- Track **fairness metrics**
-- Handle **edge cases** properly
-
-### Notifications
-- Use **Laravel queues** for background processing
-- Implement **multiple notification channels**
-- Support **push notifications**
-- Track **notification delivery**
-
-### Group Management
-- Support **group sharing** via links/codes
-- Implement **participant management**
-- Track **group history**
-- Support **group settings**
-
-## Code Generation Guidelines
-
-When generating code:
-
-1. **Include proper imports and namespaces**
-2. **Add comprehensive PHPDoc comments**
-3. **Implement proper error handling**
-4. **Include validation logic**
-5. **Write corresponding tests**
-6. **Follow established patterns**
-7. **Include proper authorization**
-8. **Log activities appropriately**
-
-## Quality Checklist
-Before suggesting code, ensure:
-- [ ] Follows Laravel conventions
-- [ ] Includes proper validation
-- [ ] Has authorization checks
-- [ ] Includes error handling
-- [ ] Has corresponding tests
-- [ ] Uses Spatie packages correctly
-- [ ] Follows security best practices
-- [ ] Is performant and scalable
-- [ ] Includes proper documentation
-- [ ] Handles edge cases
-
-## Constraints
-- Never use deprecated Laravel features
-- Always implement proper authorization
-- Don't expose sensitive data in API responses
-- Maintain backwards compatibility for API changes
-- Follow database design best practices
-- Prioritize security and performance
+## Performance & Security
+- P95 API < 200ms; DB indexes + eager loading
+- Rate limiting on sensitive endpoints
+- Consistent error envelopes; no secrets in responses
+- CSRF/session for web; token/JWT for API
