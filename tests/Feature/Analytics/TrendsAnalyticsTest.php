@@ -37,8 +37,7 @@ class TrendsAnalyticsTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_can_get_user_trends(): void
+    public function test_it_can_get_user_trends(): void
     {
         $this->createUserTurns();
 

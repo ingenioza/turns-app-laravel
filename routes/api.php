@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\TurnController;
@@ -70,5 +71,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('current', [TurnController::class, 'current']);
         Route::get('history', [TurnController::class, 'history']);
         Route::get('stats', [TurnController::class, 'groupStats']);
+    });
+
+    // Analytics routes
+    Route::prefix('groups/{group}/analytics')->group(function () {
+        Route::get('advanced', [AnalyticsController::class, 'getGroupAnalytics']);
+        Route::get('fairness', [AnalyticsController::class, 'getGroupFairness']);
+        Route::get('insights', [AnalyticsController::class, 'getGroupInsights']);
+        Route::get('performance', [AnalyticsController::class, 'getGroupPerformance']);
+        Route::get('percentiles', [AnalyticsController::class, 'getGroupPercentiles']);
+        Route::delete('cache', [AnalyticsController::class, 'clearGroupCache']);
+    });
+
+    Route::prefix('users/{user}/analytics')->group(function () {
+        Route::get('trends', [AnalyticsController::class, 'getUserTrends']);
+        Route::delete('cache', [AnalyticsController::class, 'clearUserCache']);
+    });
+
+    Route::prefix('analytics')->group(function () {
+        Route::get('dashboard', [AnalyticsController::class, 'getDashboardSummary']);
     });
 });
