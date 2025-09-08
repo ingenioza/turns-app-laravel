@@ -13,22 +13,36 @@ This directory contains a comprehensive Postman collection for testing the Turns
 - Automatically extracts and stores authentication tokens from login/register responses
 - Token is automatically used in subsequent requests
 - No manual token copying required
+- Global authentication validation and warnings
 
 ### 📋 Smart ID Management
 - Automatically extracts and stores IDs from API responses (user_id, group_id, turn_id, etc.)
 - Uses stored IDs in related endpoints
 - Maintains relationships between entities
+- Dynamic timestamp generation for unique test data
 
 ### 🧪 Built-in Testing
 - Pre-configured test scripts for response validation
 - Status code verification
 - Response structure validation
+- Performance monitoring (response time < 5s)
+- Global error logging and debugging
 - Success/error handling
 
-### 🔄 Sequential Testing
-- Tests are designed to run in sequence
+### 🔄 Sequential Testing & Full E2E Automation
+- **Complete workflow automation** from registration to analytics
+- Tests are designed to run in sequence with dependency management
 - Each test builds upon previous results
-- Automated workflow from registration to turn management
+- **Global pre/post scripts** for monitoring and validation
+- Automated retry mechanisms and error handling
+- **Full API coverage** including all 73 endpoints
+
+### 📊 Analytics Integration
+- Complete analytics endpoint coverage
+- User trends, group analytics, and fairness metrics
+- Performance and percentile analysis
+- Cache management endpoints
+- Automated analytics workflow testing
 
 ## Setup Instructions
 
@@ -99,7 +113,26 @@ This directory contains a comprehensive Postman collection for testing the Turns
 9. Get User Statistics - User metrics
 ```
 
+### 5. Analytics (NEW)
+```
+1. Get User Trends - Personal analytics with completion rates and duration trends
+2. Get Group Advanced Analytics - Comprehensive group analytics with percentiles
+3. Get Group Fairness Metrics - Gini coefficient and fairness scoring
+4. Get Group Insights - Performance insights and recommendations
+5. Get Group Performance - Performance metrics and benchmarks
+6. Get Group Percentiles - P50, P95, P99 duration percentiles
+7. Get Dashboard Summary - Overall dashboard analytics
+8. Clear User Analytics Cache - Cache management for users
+9. Clear Group Analytics Cache - Cache management for groups
+```
+
 ## Automated Features
+
+### Global Pre/Post Scripts
+- **Pre-request monitoring**: Logs current state, validates tokens, sets dynamic timestamps
+- **Post-request validation**: Response time monitoring, error logging, JSON validation
+- **Authentication warnings**: Alerts when token is missing for protected endpoints
+- **Performance tracking**: Ensures all responses complete within 5 seconds
 
 ### Token Management
 All requests after authentication automatically include:
@@ -114,13 +147,15 @@ The collection automatically extracts and stores:
 - `turn_id` from turn creation responses
 - `member_id` from user listing (for group operations)
 - `invite_code` from group creation responses
+- `timestamp` for unique test data generation
 
 ### Test Validation
 Each request includes test scripts that verify:
-- Correct HTTP status codes
-- Required response fields
-- Data structure validation
-- Error handling
+- Correct HTTP status codes (200-299 for success)
+- Required response fields and data structure
+- Response time performance (< 5 seconds)
+- JSON format validation
+- Error handling and debugging information
 
 ## Environment Variables
 
@@ -148,10 +183,28 @@ Each request includes test scripts that verify:
 
 ### Sequential Testing
 For best results, run requests in this order:
-1. Authentication → Register User
-2. Groups → Create Group
-3. Turns → Start Turn
-4. Continue with other endpoints
+
+#### **Complete E2E Test Sequence:**
+```
+1. Authentication → Register User (sets up token, user_id)
+2. Groups → Create Group (sets up group_id, invite_code)  
+3. Turns → Start Turn (sets up turn_id)
+4. Turns → Complete Turn (creates analytics data)
+5. Analytics → Get User Trends (validates user analytics)
+6. Analytics → Get Group Advanced Analytics (validates group analytics)
+7. Analytics → Get Group Fairness Metrics (validates fairness calculations)
+8. Continue with remaining endpoints...
+```
+
+#### **Quick Validation Sequence:**
+```
+1. Register User → Create Group → Start Turn → Get Analytics
+```
+
+#### **Performance Testing Sequence:**
+```
+Run entire collection with Collection Runner for comprehensive performance validation
+```
 
 ## Troubleshooting
 ### POST becomes GET after request
@@ -192,13 +245,41 @@ Error: {{variable}} not resolved
 Solution: Ensure environment is selected and imported correctly
 ```
 
+## End-to-End Testing
+
+### **Full API Validation**
+The collection includes **all 73 API endpoints** with complete test coverage:
+
+- ✅ **Authentication (7 endpoints)** - Register, login, token management
+- ✅ **Users (8 endpoints)** - CRUD, search, settings, groups
+- ✅ **Groups (12 endpoints)** - CRUD, join/leave, members, roles  
+- ✅ **Turns (14 endpoints)** - Start, complete, skip, history, statistics
+- ✅ **Analytics (9 endpoints)** - Trends, fairness, performance, percentiles
+- ✅ **System (23+ endpoints)** - Horizon monitoring, storage, CSRF
+
+### **Automated Workflow Testing**
+- **Registration → Group Creation → Turn Management → Analytics** in one flow
+- Automatic dependency resolution (IDs passed between requests)
+- Global error handling and retry mechanisms
+- Performance monitoring for all endpoints
+- Cache validation and management
+
+### **Data Validation**
+- Response structure validation for all endpoints
+- Business logic validation (completion rates, fairness metrics)
+- Performance benchmarks (< 5s response time)
+- Authentication flow validation
+- Cross-endpoint data consistency checks
+
 ## Best Practices
 
 1. **Always start with authentication** - Register or login first
-2. **Create test data** - Create groups before testing turn operations
-3. **Check test results** - Review the test output for each request
-4. **Use collection runner** - For comprehensive testing
-5. **Monitor console** - Check Postman console for debug information
+2. **Use Collection Runner for full E2E** - Run entire collection for comprehensive testing
+3. **Monitor console output** - Check detailed logging for debugging
+4. **Create realistic test data** - Use sequential workflow for realistic data relationships
+5. **Validate analytics** - Ensure turn data generates proper analytics
+6. **Performance testing** - Monitor response times and system performance
+7. **Cache testing** - Test cache clearing and regeneration
 
 ## Development Tips
 
