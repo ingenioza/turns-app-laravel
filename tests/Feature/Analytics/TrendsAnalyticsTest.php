@@ -323,7 +323,7 @@ class TrendsAnalyticsTest extends TestCase
                 'user_id' => $this->user->id,
                 'status' => rand(0, 1) ? 'completed' : 'skipped',
                 'started_at' => $date->copy()->addHours(rand(8, 18)),
-                'completed_at' => function (array $attributes) {
+                'ended_at' => function (array $attributes) {
                     return $attributes['started_at']->addMinutes(rand(5, 120));
                 },
             ]);
@@ -344,7 +344,7 @@ class TrendsAnalyticsTest extends TestCase
                     'user_id' => $this->user->id,
                     'status' => 'completed',
                     'started_at' => $date,
-                    'completed_at' => function (array $attributes) {
+                    'ended_at' => function (array $attributes) {
                         return $attributes['started_at']->addMinutes(rand(5, 60));
                     },
                 ]);
@@ -369,7 +369,7 @@ class TrendsAnalyticsTest extends TestCase
                     'user_id' => $this->user->id,
                     'status' => 'completed',
                     'started_at' => $weekStart->copy()->addDays(rand(0, 6)),
-                    'completed_at' => function (array $attributes) {
+                    'ended_at' => function (array $attributes) {
                         return $attributes['started_at']->addMinutes(rand(5, 60));
                     },
                 ]);
@@ -382,7 +382,7 @@ class TrendsAnalyticsTest extends TestCase
                     'user_id' => $this->user->id,
                     'status' => 'skipped',
                     'started_at' => $weekStart->copy()->addDays(rand(0, 6)),
-                    'completed_at' => function (array $attributes) {
+                    'ended_at' => function (array $attributes) {
                         return $attributes['started_at']->addMinutes(rand(1, 5));
                     },
                 ]);
@@ -404,7 +404,7 @@ class TrendsAnalyticsTest extends TestCase
                     'user_id' => $this->user->id,
                     'status' => 'completed',
                     'started_at' => $weekStart->copy()->addDays(rand(0, 6)),
-                    'completed_at' => function (array $attributes) use ($avgDuration) {
+                    'ended_at' => function (array $attributes) use ($avgDuration) {
                         $variance = $avgDuration * 0.3; // 30% variance
                         $duration = $avgDuration + rand(-$variance, $variance);
                         return $attributes['started_at']->addMinutes(max(5, $duration));
@@ -425,7 +425,7 @@ class TrendsAnalyticsTest extends TestCase
                 'user_id' => $this->user->id,
                 'status' => rand(0, 1) ? 'completed' : 'skipped',
                 'started_at' => $date->copy()->setTime(rand(9, 17), rand(0, 59)),
-                'completed_at' => function (array $attributes) {
+                'ended_at' => function (array $attributes) {
                     return $attributes['started_at']->addMinutes(rand(5, 90));
                 },
             ]);
@@ -443,7 +443,7 @@ class TrendsAnalyticsTest extends TestCase
                 'user_id' => $this->user->id,
                 'status' => 'completed',
                 'started_at' => now()->subDays(rand(1, 10)),
-                'completed_at' => function (array $attributes) use ($responseTime) {
+                'ended_at' => function (array $attributes) use ($responseTime) {
                     return $attributes['started_at']->addMinutes($responseTime);
                 },
             ]);

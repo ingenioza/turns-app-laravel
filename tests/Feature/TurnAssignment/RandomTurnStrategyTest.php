@@ -5,11 +5,12 @@ use App\Models\Group;
 use App\Models\Turn;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->strategy = new RandomTurnStrategy;
+    $this->strategy = app(RandomTurnStrategy::class);
 
     $this->group = Group::factory()->create();
     $this->users = User::factory(3)->create();

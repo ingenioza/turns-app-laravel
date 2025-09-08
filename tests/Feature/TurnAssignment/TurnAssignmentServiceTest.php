@@ -4,11 +4,12 @@ use App\Application\Services\TurnAssignment\TurnAssignmentService;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->service = new TurnAssignmentService;
+    $this->service = app(TurnAssignmentService::class);
 
     $this->group = Group::factory()->create();
     $this->users = User::factory(3)->create();
