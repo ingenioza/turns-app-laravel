@@ -24,7 +24,15 @@ class FirebaseService
         
         if ($this->enabled) {
             try {
-                $factory = (new Factory)->withServiceAccount(config('firebase.credentials'));
+                // Try to use JSON file first, then fall back to config
+                $serviceAccountPath = storage_path('firebase/service-account.json');
+                
+                if (file_exists($serviceAccountPath)) {
+                    $factory = (new Factory)->withServiceAccount($serviceAccountPath);
+                } else {
+                    $factory = (new Factory)->withServiceAccount(config('firebase.credentials'));
+                }
+                
                 $this->auth = $factory->createAuth();
             } catch (\Exception $e) {
                 Log::warning('Firebase initialization failed: ' . $e->getMessage());
