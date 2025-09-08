@@ -933,6 +933,346 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "Analytics",
+			"item": [
+				{
+					"name": "Get User Trends",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('User trends retrieved successfully', function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test('Response has analytics structure', function () {",
+									"        const response = pm.response.json();",
+									"        pm.expect(response).to.have.property('data');",
+									"        pm.expect(response.data).to.have.property('user_id');",
+									"        pm.expect(response.data).to.have.property('daily_activity');",
+									"        pm.expect(response.data).to.have.property('completion_rate');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/analytics/trends?days=30",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}", "analytics", "trends"],
+							"query": [
+								{
+									"key": "days",
+									"value": "30"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Group Advanced Analytics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Group analytics retrieved successfully', function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test('Response has group analytics structure', function () {",
+									"        const response = pm.response.json();",
+									"        pm.expect(response).to.have.property('data');",
+									"        pm.expect(response.data).to.have.property('group_id');",
+									"        pm.expect(response.data).to.have.property('percentiles');",
+									"        pm.expect(response.data).to.have.property('member_statistics');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}/analytics/advanced?days=30",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}", "analytics", "advanced"],
+							"query": [
+								{
+									"key": "days",
+									"value": "30"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Group Fairness Metrics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Group fairness metrics retrieved successfully', function () {",
+									"    pm.expect(pm.response.code).to.equal(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    pm.test('Response has fairness metrics structure', function () {",
+									"        const response = pm.response.json();",
+									"        pm.expect(response).to.have.property('data');",
+									"        pm.expect(response.data).to.have.property('group_id');",
+									"        pm.expect(response.data).to.have.property('gini_coefficient');",
+									"        pm.expect(response.data).to.have.property('fairness_score');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}/analytics/fairness?days=30",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}", "analytics", "fairness"],
+							"query": [
+								{
+									"key": "days",
+									"value": "30"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Group Insights",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}/analytics/insights",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}", "analytics", "insights"]
+						}
+					}
+				},
+				{
+					"name": "Get Group Performance",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}/analytics/performance",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}", "analytics", "performance"]
+						}
+					}
+				},
+				{
+					"name": "Get Group Percentiles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}/analytics/percentiles",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}", "analytics", "percentiles"]
+						}
+					}
+				},
+				{
+					"name": "Get Dashboard Summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/analytics/dashboard",
+							"host": ["{{base_url}}"],
+							"path": ["api", "analytics", "dashboard"]
+						}
+					}
+				},
+				{
+					"name": "Clear User Analytics Cache",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/analytics/cache",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}", "analytics", "cache"]
+						}
+					}
+				},
+				{
+					"name": "Clear Group Analytics Cache",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/groups/{{group_id}}/analytics/cache",
+							"host": ["{{base_url}}"],
+							"path": ["api", "groups", "{{group_id}}", "analytics", "cache"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script for all requests",
+					"console.log('=== Pre-request Script ===');",
+					"console.log('Request:', pm.info.requestName);",
+					"console.log('Current variables:');",
+					"console.log('- token:', pm.collectionVariables.get('token') ? 'SET' : 'NOT SET');",
+					"console.log('- user_id:', pm.collectionVariables.get('user_id'));",
+					"console.log('- group_id:', pm.collectionVariables.get('group_id'));",
+					"console.log('- turn_id:', pm.collectionVariables.get('turn_id'));",
+					"",
+					"// Auto-retry mechanism for authentication",
+					"const currentRequest = pm.info.requestName;",
+					"if (currentRequest !== 'Register User' && currentRequest !== 'Login User') {",
+					"    const token = pm.collectionVariables.get('token');",
+					"    if (!token) {",
+					"        console.warn('WARNING: No authentication token found. Some requests may fail.');",
+					"    }",
+					"}",
+					"",
+					"// Set dynamic timestamps for unique data",
+					"pm.collectionVariables.set('timestamp', Date.now());"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript", 
+				"exec": [
+					"// Global post-request script for all requests",
+					"console.log('=== Post-request Script ===');",
+					"console.log('Response status:', pm.response.code);",
+					"console.log('Response time:', pm.response.responseTime + 'ms');",
+					"",
+					"// Log any errors for debugging",
+					"if (pm.response.code >= 400) {",
+					"    console.error('Error response:', pm.response.text());",
+					"}",
+					"",
+					"// Performance monitoring",
+					"pm.test('Response time is reasonable', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"// Standard response format validation",
+					"if (pm.response.code >= 200 && pm.response.code < 300) {",
+					"    pm.test('Response has valid JSON', function () {",
+					"        pm.response.to.have.jsonBody();",
+					"    });",
+					"}"
+				]
+			}
 		}
 	]
 }

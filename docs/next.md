@@ -1,0 +1,1 @@
+.env updated with Firebase credentials. I've got herd running, so this should be accessible at https://turns_laravel.test (update dev docs)

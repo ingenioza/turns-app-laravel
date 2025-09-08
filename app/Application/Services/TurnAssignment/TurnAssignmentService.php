@@ -14,9 +14,9 @@ class TurnAssignmentService
 
     public function __construct()
     {
-        $this->registerStrategy(new RandomTurnStrategy);
-        $this->registerStrategy(new RoundRobinTurnStrategy);
-        $this->registerStrategy(new WeightedTurnStrategy);
+        $this->registerStrategy(app(RandomTurnStrategy::class));
+        $this->registerStrategy(app(RoundRobinTurnStrategy::class));
+        $this->registerStrategy(app(WeightedTurnStrategy::class));
     }
 
     /**

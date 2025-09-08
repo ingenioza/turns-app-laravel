@@ -23,7 +23,12 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'username',
         'password',
+        'firebase_uid',
+        'provider',
+        'firebase_analytics_data',
+        'last_firebase_login',
     ];
 
     /**
@@ -45,6 +50,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_firebase_login' => 'datetime',
+            'firebase_analytics_data' => 'array',
             'password' => 'hashed',
         ];
     }

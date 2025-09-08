@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Application\Services\UserService;
+use App\Application\Services\FirebaseService;
 use App\Domain\User\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +16,8 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     public function __construct(
-        private UserService $userService
+        private UserService $userService,
+        private FirebaseService $firebaseService
     ) {}
 
     /**
@@ -177,5 +179,62 @@ class AuthController extends Controller
             'message' => 'Settings updated successfully',
             'user' => $updatedUser,
         ]);
+    }
+
+    /**
+     * Exchange Firebase ID token for API token
+     */
+    public function firebaseExchange(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'idToken' => ['required', 'string'],
+        ]);
+
+        try {
+            // Check if Firebase is configured
+            if (!$this->firebaseService->isConfigured()) {
+                return response()->json([
+                    'message' => 'Firebase authentication is not configured',
+                    'note' => 'Please configure Firebase credentials in .env file',
+                    'fallback' => 'Use /auth/register and /auth/login endpoints for development',
+                ], 501);
+            }
+
+            // Verify Firebase ID token
+            $firebaseUser = $this->firebaseService->verifyToken($validated['idToken']);
+            
+            // Find or create user account
+            $user = $this->firebaseService->findOrCreateUser($firebaseUser);
+            
+            // Update last active timestamp
+            $this->userService->updateLastActive($user);
+            
+            // Track Firebase analytics event
+            $this->firebaseService->trackEvent($user, 'firebase_login', [
+                'login_method' => $firebaseUser['provider'],
+                'email_verified' => $firebaseUser['email_verified'],
+            ]);
+            
+            // Create API token
+            $token = $user->createToken('firebase-auth-token', ['*'], now()->addDays(30))->plainTextToken;
+
+            return response()->json([
+                'message' => 'Firebase authentication successful',
+                'user' => $user->load(['groups']),
+                'token' => $token,
+                'firebase_data' => [
+                    'provider' => $firebaseUser['provider'],
+                    'email_verified' => $firebaseUser['email_verified'],
+                    'last_login' => $user->last_firebase_login,
+                ],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Firebase authentication failed',
+                'error' => $e->getMessage(),
+                'fallback' => 'Use /auth/register and /auth/login endpoints for development',
+            ], 401);
+        }
     }
 }
