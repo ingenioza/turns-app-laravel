@@ -178,4 +178,22 @@ class AuthController extends Controller
             'user' => $updatedUser,
         ]);
     }
+
+    /**
+     * Exchange Firebase ID token for API token
+     */
+    public function firebaseExchange(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'idToken' => ['required', 'string'],
+        ]);
+
+        // TODO: Implement Firebase ID token verification
+        // For now, return a placeholder response indicating Firebase auth is not yet implemented
+        return response()->json([
+            'message' => 'Firebase authentication not yet implemented',
+            'note' => 'Use /auth/register and /auth/login endpoints for now',
+            'provided_token' => substr($validated['idToken'], 0, 20) . '...',
+        ], 501); // 501 Not Implemented
+    }
 }
