@@ -18,7 +18,9 @@ class FirebaseService
 
     public function __construct()
     {
-        $this->enabled = config('firebase.project_id') && config('firebase.project_id') !== 'your-firebase-project-id';
+        $this->enabled = config('firebase.project_id') && 
+                        config('firebase.project_id') !== 'your-firebase-project-id' &&
+                        config('firebase.project_id') === 'turns-ccc9e';
         
         if ($this->enabled) {
             try {
@@ -122,6 +124,12 @@ class FirebaseService
             'firebase_created_at' => $firebaseUser['issued_at']->format('Y-m-d H:i:s'),
             'has_picture' => !empty($firebaseUser['picture']),
             'email_verified' => $firebaseUser['email_verified'],
+            'project_id' => config('firebase.project_id'),
+            'app_identifiers' => [
+                'android_package' => config('firebase.apps.android.package_name'),
+                'web_app_name' => config('firebase.apps.web.app_name'),
+                'measurement_id' => config('firebase.analytics.measurement_id'),
+            ],
         ];
     }
 
